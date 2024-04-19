@@ -4,7 +4,6 @@ go 1.22.2
 
 require (
 	github.com/gdamore/tcell/v2 v2.7.4
-	github.com/tidwall/btree v1.7.0
 	github.com/google/uuid v1.6.0
 )
 
