@@ -45,7 +45,7 @@ func main() {
 	layers.Insert(0, rect)
 	layers.Insert(1, text)
 
-	layers.Remove(text.UniqueId())
+	//layers.Remove(text.UniqueId())
 
 	events := make(chan tcell.Event)
 	quit := make(chan struct{})
