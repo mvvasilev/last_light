@@ -4,6 +4,7 @@ import (
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v2/views"
 	"github.com/google/uuid"
 )
 
@@ -24,7 +25,30 @@ type rectangle struct {
 	seCorner rune
 	neCorner rune
 
+	isBorderless bool
+	isFilled     bool
+
 	fillRune rune
+}
+
+func CreateBorderlessRectangle(x, y uint16, width, height uint16, fillRune rune, style tcell.Style) rectangle {
+	return CreateRectangle(
+		x, y, width, height,
+		0, 0, 0,
+		0, fillRune, 0,
+		0, 0, 0,
+		true, true, style,
+	)
+}
+
+func CreateSimpleEmptyRectangle(x, y uint16, width, height uint16, borderRune rune, style tcell.Style) rectangle {
+	return CreateRectangle(
+		x, y, width, height,
+		borderRune, borderRune, borderRune,
+		borderRune, 0, borderRune,
+		borderRune, borderRune, borderRune,
+		false, false, style,
+	)
 }
 
 func CreateSimpleRectangle(x uint16, y uint16, width uint16, height uint16, borderRune rune, fillRune rune, style tcell.Style) rectangle {
@@ -33,17 +57,18 @@ func CreateSimpleRectangle(x uint16, y uint16, width uint16, height uint16, bord
 		borderRune, borderRune, borderRune,
 		borderRune, fillRune, borderRune,
 		borderRune, borderRune, borderRune,
-		style,
+		false, true, style,
 	)
 }
 
 // CreateRectangle(
 //
-//	x, y, width, height,
-//	'┌', '─', '┐',
-//	'│', ' ', '│',
-//	'└', '─', '┘',
-//	style
+//		x, y, width, height,
+//		'┌', '─', '┐',
+//		'│', ' ', '│',
+//		'└', '─', '┘',
+//	 false, true,
+//		style
 //
 // )
 func CreateRectangle(
@@ -54,22 +79,25 @@ func CreateRectangle(
 	nwCorner, northBorder, neCorner,
 	westBorder, fillRune, eastBorder,
 	swCorner, southBorder, seCorner rune,
+	isBorderless, isFilled bool,
 	style tcell.Style,
 ) rectangle {
 	return rectangle{
-		id:          uuid.New(),
-		size:        util.SizeOf(width, height),
-		position:    util.PositionAt(x, y),
-		style:       style,
-		northBorder: northBorder,
-		eastBorder:  eastBorder,
-		southBorder: southBorder,
-		westBorder:  westBorder,
-		nwCorner:    nwCorner,
-		seCorner:    seCorner,
-		swCorner:    swCorner,
-		neCorner:    neCorner,
-		fillRune:    fillRune,
+		id:           uuid.New(),
+		size:         util.SizeOf(width, height),
+		position:     util.PositionAt(x, y),
+		style:        style,
+		northBorder:  northBorder,
+		eastBorder:   eastBorder,
+		southBorder:  southBorder,
+		westBorder:   westBorder,
+		nwCorner:     nwCorner,
+		seCorner:     seCorner,
+		swCorner:     swCorner,
+		neCorner:     neCorner,
+		isBorderless: isBorderless,
+		isFilled:     isFilled,
+		fillRune:     fillRune,
 	}
 }
 
@@ -77,64 +105,42 @@ func (rect rectangle) UniqueId() uuid.UUID {
 	return rect.id
 }
 
-func (rect rectangle) Draw(s tcell.Screen) {
+func (rect rectangle) drawBorders(v views.View) {
 	width := rect.size.Width()
 	height := rect.size.Height()
 	x := rect.position.X()
 	y := rect.position.Y()
 
-	for h := range height {
-		for w := range width {
+	v.SetContent(x, y, rect.nwCorner, nil, rect.style)
+	v.SetContent(x+width-1, y, rect.neCorner, nil, rect.style)
+	v.SetContent(x, y+height-1, rect.swCorner, nil, rect.style)
+	v.SetContent(x+width-1, y+height-1, rect.seCorner, nil, rect.style)
 
-			// nw corner
-			if w == 0 && h == 0 {
-				s.SetContent(x+w, y+h, rect.nwCorner, nil, rect.style)
-				continue
-			}
+	for w := range width - 2 {
+		v.SetContent(1+w, y, rect.northBorder, nil, rect.style)
+		v.SetContent(1+w, y+height-1, rect.southBorder, nil, rect.style)
+	}
 
-			// ne corner
-			if w == (width-1) && h == 0 {
-				s.SetContent(x+w, y+h, rect.neCorner, nil, rect.style)
-				continue
-			}
+	for h := range height - 2 {
+		v.SetContent(x, 1+h, rect.westBorder, nil, rect.style)
+		v.SetContent(x+width-1, 1+h, rect.eastBorder, nil, rect.style)
+	}
+}
 
-			// sw corner
-			if w == 0 && h == (height-1) {
-				s.SetContent(x+w, y+h, rect.swCorner, nil, rect.style)
-				continue
-			}
-
-			// se corner
-			if w == (width-1) && h == (height-1) {
-				s.SetContent(x+w, y+h, rect.seCorner, nil, rect.style)
-				continue
-			}
-
-			// north border
-			if h == 0 && (w != 0 && w != (width-1)) {
-				s.SetContent(x+w, y+h, rect.northBorder, nil, rect.style)
-				continue
-			}
-
-			// south border
-			if h == (height-1) && (w != 0 && w != (width-1)) {
-				s.SetContent(x+w, y+h, rect.southBorder, nil, rect.style)
-				continue
-			}
-
-			// west border
-			if w == 0 && (h != 0 && h != (height-1)) {
-				s.SetContent(x+w, y+h, rect.westBorder, nil, rect.style)
-				continue
-			}
-
-			// east border
-			if w == (width-1) && (h != 0 && h != (height-1)) {
-				s.SetContent(x+w, y+h, rect.eastBorder, nil, rect.style)
-				continue
-			}
-
-			s.SetContent(x+w, y+h, rect.fillRune, nil, rect.style)
+func (rect rectangle) drawFill(v views.View) {
+	for w := range rect.size.Width() - 2 {
+		for h := range rect.size.Height() - 2 {
+			v.SetContent(1+w, 1+h, rect.fillRune, nil, rect.style)
 		}
+	}
+}
+
+func (rect rectangle) Draw(v views.View) {
+	if !rect.isBorderless {
+		rect.drawBorders(v)
+	}
+
+	if rect.isFilled {
+		rect.drawFill(v)
 	}
 }

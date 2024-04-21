@@ -6,13 +6,9 @@ import (
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v2/views"
 	"github.com/google/uuid"
 )
-
-type Drawable interface {
-	UniqueId() uuid.UUID
-	Draw(s tcell.Screen)
-}
 
 type text struct {
 	id       uuid.UUID
@@ -41,7 +37,7 @@ func (t text) UniqueId() uuid.UUID {
 	return t.id
 }
 
-func (t text) Draw(s tcell.Screen) {
+func (t text) Draw(s views.View) {
 	width := t.size.Width()
 	height := t.size.Height()
 	x := t.position.X()

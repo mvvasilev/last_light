@@ -3,7 +3,7 @@ package render
 import (
 	"slices"
 
-	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v2/views"
 	"github.com/google/uuid"
 )
 
@@ -31,7 +31,7 @@ func (l *layer) remove(uuid uuid.UUID) {
 	})
 }
 
-func (l *layer) draw(s tcell.Screen) {
+func (l *layer) draw(s views.View) {
 	for _, d := range l.contents {
 		d.Draw(s)
 	}
@@ -112,7 +112,7 @@ func (ldc *layeredDrawContainer) UniqueId() uuid.UUID {
 	return ldc.id
 }
 
-func (ldc *layeredDrawContainer) Draw(s tcell.Screen) {
+func (ldc *layeredDrawContainer) Draw(s views.View) {
 	for _, d := range ldc.layers {
 		d.draw(s)
 	}
