@@ -37,6 +37,18 @@ func (l *layer) draw(s tcell.Screen) {
 	}
 }
 
+type unorderedDrawContainer struct {
+	id       uuid.UUID
+	contents []Drawable
+}
+
+func CreateUnorderedDrawContainer(contents []Drawable) unorderedDrawContainer {
+	return unorderedDrawContainer{
+		id:       uuid.New(),
+		contents: contents,
+	}
+}
+
 type layeredDrawContainer struct {
 	id     uuid.UUID
 	layers []*layer

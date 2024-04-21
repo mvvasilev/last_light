@@ -18,6 +18,7 @@
         - Fire
         - Cold
         - Necrotic
+        - Thunder
         - Acid
         - Poison
 - 9-level Dungeon
