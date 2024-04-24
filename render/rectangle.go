@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type rectangle struct {
+type Rectangle struct {
 	id uuid.UUID
 
 	size     util.Size
@@ -31,7 +31,7 @@ type rectangle struct {
 	fillRune rune
 }
 
-func CreateBorderlessRectangle(x, y uint16, width, height uint16, fillRune rune, style tcell.Style) rectangle {
+func CreateBorderlessRectangle(x, y uint16, width, height uint16, fillRune rune, style tcell.Style) Rectangle {
 	return CreateRectangle(
 		x, y, width, height,
 		0, 0, 0,
@@ -41,7 +41,7 @@ func CreateBorderlessRectangle(x, y uint16, width, height uint16, fillRune rune,
 	)
 }
 
-func CreateSimpleEmptyRectangle(x, y uint16, width, height uint16, borderRune rune, style tcell.Style) rectangle {
+func CreateSimpleEmptyRectangle(x, y uint16, width, height uint16, borderRune rune, style tcell.Style) Rectangle {
 	return CreateRectangle(
 		x, y, width, height,
 		borderRune, borderRune, borderRune,
@@ -51,13 +51,32 @@ func CreateSimpleEmptyRectangle(x, y uint16, width, height uint16, borderRune ru
 	)
 }
 
-func CreateSimpleRectangle(x uint16, y uint16, width uint16, height uint16, borderRune rune, fillRune rune, style tcell.Style) rectangle {
+func CreateSimpleRectangle(x uint16, y uint16, width uint16, height uint16, borderRune rune, fillRune rune, style tcell.Style) Rectangle {
 	return CreateRectangle(
 		x, y, width, height,
 		borderRune, borderRune, borderRune,
 		borderRune, fillRune, borderRune,
 		borderRune, borderRune, borderRune,
 		false, true, style,
+	)
+}
+
+func CreateRectangleV2(
+	x, y uint16, width, height uint16,
+	upper, middle, lower string,
+	isBorderless, isFilled bool,
+	style tcell.Style,
+) Rectangle {
+	upperRunes := []rune(upper)
+	middleRunes := []rune(middle)
+	lowerRunes := []rune(lower)
+
+	return CreateRectangle(
+		x, y, width, height,
+		upperRunes[0], upperRunes[1], upperRunes[2],
+		middleRunes[0], middleRunes[1], middleRunes[2],
+		lowerRunes[0], lowerRunes[1], lowerRunes[2],
+		isBorderless, isFilled, style,
 	)
 }
 
@@ -81,8 +100,8 @@ func CreateRectangle(
 	swCorner, southBorder, seCorner rune,
 	isBorderless, isFilled bool,
 	style tcell.Style,
-) rectangle {
-	return rectangle{
+) Rectangle {
+	return Rectangle{
 		id:           uuid.New(),
 		size:         util.SizeOf(width, height),
 		position:     util.PositionAt(x, y),
@@ -101,11 +120,15 @@ func CreateRectangle(
 	}
 }
 
-func (rect rectangle) UniqueId() uuid.UUID {
+func (rect Rectangle) UniqueId() uuid.UUID {
 	return rect.id
 }
 
-func (rect rectangle) drawBorders(v views.View) {
+func (rect Rectangle) Position() util.Position {
+	return rect.position
+}
+
+func (rect Rectangle) drawBorders(v views.View) {
 	width := rect.size.Width()
 	height := rect.size.Height()
 	x := rect.position.X()
@@ -116,26 +139,31 @@ func (rect rectangle) drawBorders(v views.View) {
 	v.SetContent(x, y+height-1, rect.swCorner, nil, rect.style)
 	v.SetContent(x+width-1, y+height-1, rect.seCorner, nil, rect.style)
 
-	for w := range width - 2 {
-		v.SetContent(1+w, y, rect.northBorder, nil, rect.style)
-		v.SetContent(1+w, y+height-1, rect.southBorder, nil, rect.style)
+	for w := 1; w < width-1; w++ {
+		v.SetContent(x+w, y, rect.northBorder, nil, rect.style)
+		v.SetContent(x+w, y+height-1, rect.southBorder, nil, rect.style)
 	}
 
-	for h := range height - 2 {
-		v.SetContent(x, 1+h, rect.westBorder, nil, rect.style)
-		v.SetContent(x+width-1, 1+h, rect.eastBorder, nil, rect.style)
+	for h := 1; h < height-1; h++ {
+		v.SetContent(x, y+h, rect.westBorder, nil, rect.style)
+		v.SetContent(x+width-1, y+h, rect.eastBorder, nil, rect.style)
 	}
 }
 
-func (rect rectangle) drawFill(v views.View) {
-	for w := range rect.size.Width() - 2 {
-		for h := range rect.size.Height() - 2 {
-			v.SetContent(1+w, 1+h, rect.fillRune, nil, rect.style)
+func (rect Rectangle) drawFill(v views.View) {
+	width := rect.size.Width()
+	height := rect.size.Height()
+	x := rect.position.X()
+	y := rect.position.Y()
+
+	for w := 1; w < width-1; w++ {
+		for h := 1; h < height-1; h++ {
+			v.SetContent(x+w, y+h, rect.fillRune, nil, rect.style)
 		}
 	}
 }
 
-func (rect rectangle) Draw(v views.View) {
+func (rect Rectangle) Draw(v views.View) {
 	if !rect.isBorderless {
 		rect.drawBorders(v)
 	}

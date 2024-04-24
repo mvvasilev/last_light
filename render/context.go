@@ -22,7 +22,7 @@ type Drawable interface {
 	Draw(v views.View)
 }
 
-type renderContext struct {
+type RenderContext struct {
 	screen       tcell.Screen
 	view         *views.ViewPort
 	defaultStyle tcell.Style
@@ -36,7 +36,7 @@ type renderContext struct {
 	inputHandler  func(ev *tcell.EventKey)
 }
 
-func CreateRenderContext() (*renderContext, error) {
+func CreateRenderContext() (*RenderContext, error) {
 	s, err := tcell.NewScreen()
 
 	if err != nil {
@@ -77,7 +77,7 @@ func CreateRenderContext() (*renderContext, error) {
 
 	go s.ChannelEvents(events, quit)
 
-	context := new(renderContext)
+	context := new(RenderContext)
 
 	context.screen = s
 	context.defaultStyle = defStyle
@@ -88,19 +88,19 @@ func CreateRenderContext() (*renderContext, error) {
 	return context, nil
 }
 
-func (c *renderContext) Stop() {
+func (c *RenderContext) Stop() {
 	c.screen.Fini()
 }
 
-func (c *renderContext) HandleRender(renderHandler func(view views.View, deltaTime int64)) {
+func (c *RenderContext) HandleRender(renderHandler func(view views.View, deltaTime int64)) {
 	c.renderHandler = renderHandler
 }
 
-func (c *renderContext) HandleInput(inputHandler func(ev *tcell.EventKey)) {
+func (c *RenderContext) HandleInput(inputHandler func(ev *tcell.EventKey)) {
 	c.inputHandler = inputHandler
 }
 
-func (c *renderContext) onResize(ev *tcell.EventResize) {
+func (c *RenderContext) onResize(ev *tcell.EventResize) {
 	width, height := ev.Size()
 
 	c.screen.Clear()
@@ -115,7 +115,7 @@ func (c *renderContext) onResize(ev *tcell.EventResize) {
 	c.screen.Sync()
 }
 
-func (c *renderContext) BeginRendering() {
+func (c *RenderContext) BeginRendering() {
 	c.lastRenderTime = time.Now()
 
 	for {

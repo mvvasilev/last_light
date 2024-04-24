@@ -37,13 +37,13 @@ func (l *layer) draw(s views.View) {
 	}
 }
 
-type unorderedDrawContainer struct {
+type UnorderedDrawContainer struct {
 	id       uuid.UUID
 	contents []Drawable
 }
 
-func CreateUnorderedDrawContainer(contents []Drawable) unorderedDrawContainer {
-	return unorderedDrawContainer{
+func CreateUnorderedDrawContainer(contents []Drawable) UnorderedDrawContainer {
+	return UnorderedDrawContainer{
 		id:       uuid.New(),
 		contents: contents,
 	}

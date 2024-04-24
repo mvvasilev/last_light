@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type text struct {
+type Text struct {
 	id       uuid.UUID
 	content  []string
 	position util.Position
@@ -23,21 +23,43 @@ func CreateText(
 	width, height uint16,
 	content string,
 	style tcell.Style,
-) text {
-	return text{
-		id:       uuid.New(),
-		content:  strings.Split(content, " "),
-		style:    style,
-		size:     util.SizeOf(width, height),
-		position: util.PositionAt(x, y),
-	}
+) *Text {
+	text := new(Text)
+
+	text.id = uuid.New()
+	text.content = strings.Split(content, " ")
+	text.style = style
+	text.size = util.SizeOf(width, height)
+	text.position = util.PositionAt(x, y)
+
+	return text
 }
 
-func (t text) UniqueId() uuid.UUID {
+func (t *Text) UniqueId() uuid.UUID {
 	return t.id
 }
 
-func (t text) Draw(s views.View) {
+func (t *Text) Position() util.Position {
+	return t.position
+}
+
+func (t *Text) Content() string {
+	return strings.Join(t.content, " ")
+}
+
+func (t *Text) Size() util.Size {
+	return t.size
+}
+
+func (t *Text) SetStyle(style tcell.Style) {
+	t.style = style
+}
+
+func (t *Text) Style() tcell.Style {
+	return t.style
+}
+
+func (t *Text) Draw(s views.View) {
 	width := t.size.Width()
 	height := t.size.Height()
 	x := t.position.X()

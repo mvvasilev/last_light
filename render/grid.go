@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type grid struct {
+type Grid struct {
 	id uuid.UUID
 
 	internalCellSize   util.Size
@@ -45,7 +45,7 @@ func CreateSimpleGrid(
 	numCellsHorizontal, numCellsVertical uint16,
 	borderRune, fillRune rune,
 	style tcell.Style,
-) grid {
+) Grid {
 	return CreateGrid(
 		x, y, cellWidth, cellHeight, numCellsHorizontal, numCellsVertical,
 		borderRune, borderRune, borderRune, borderRune,
@@ -72,8 +72,8 @@ func CreateGrid(
 	horizontalRightTJunction, internalHorizontalBorder, crossJunction, horizontalLeftTJunction,
 	swCorner, southBorder, verticalUpwardsTJunction, seCorner rune,
 	style tcell.Style,
-) grid {
-	return grid{
+) Grid {
+	return Grid{
 		id:                         uuid.New(),
 		internalCellSize:           util.SizeOf(cellWidth, cellHeight),
 		numCellsHorizontal:         numCellsHorizontal,
@@ -100,7 +100,7 @@ func CreateGrid(
 	}
 }
 
-func (g grid) UniqueId() uuid.UUID {
+func (g Grid) UniqueId() uuid.UUID {
 	return g.id
 }
 
@@ -117,9 +117,11 @@ func (g grid) UniqueId() uuid.UUID {
 // #   #   #   #
 // #   #   #   #
 // C###T###T###C
-func (g grid) drawBorders(v views.View) {
-	width := 2 + (g.internalCellSize.Width() * int(g.numCellsHorizontal)) + (int(g.numCellsHorizontal) - 1)
-	height := 2 + (g.internalCellSize.Height() * int(g.numCellsVertical)) + (int(g.numCellsVertical) - 1)
+func (g Grid) drawBorders(v views.View) {
+	iCellSizeWidth := g.internalCellSize.Width()
+	iCellSizeHeight := g.internalCellSize.Height()
+	width := 1 + (iCellSizeWidth * int(g.numCellsHorizontal)) + (int(g.numCellsHorizontal))
+	height := 1 + (iCellSizeHeight * int(g.numCellsVertical)) + (int(g.numCellsVertical))
 	x := g.position.X()
 	y := g.position.Y()
 
@@ -128,22 +130,54 @@ func (g grid) drawBorders(v views.View) {
 	v.SetContent(x, y+height-1, g.swCorner, nil, g.style)
 	v.SetContent(x+width-1, y+height-1, g.seCorner, nil, g.style)
 
-	for w := range width - 2 {
-		v.SetContent(1+w, y, g.northBorder, nil, g.style)
-		v.SetContent(1+w, y+height-1, g.southBorder, nil, g.style)
+	for w := 1; w < width-1; w++ {
+
+		for iw := 1; iw < int(g.numCellsVertical); iw++ {
+			if w%(iCellSizeWidth+1) == 0 {
+				v.SetContent(x+w, y+(iw*iCellSizeHeight+iw), g.crossJunction, nil, g.style)
+				continue
+			}
+
+			v.SetContent(x+w, y+(iw*iCellSizeHeight+iw), g.internalHorizontalBorder, nil, g.style)
+		}
+
+		if w%(iCellSizeWidth+1) == 0 {
+			v.SetContent(x+w, y, g.verticalDownwardsTJunction, nil, g.style)
+			v.SetContent(x+w, y+height-1, g.verticalUpwardsTJunction, nil, g.style)
+			continue
+		}
+
+		v.SetContent(x+w, y, g.northBorder, nil, g.style)
+		v.SetContent(x+w, y+height-1, g.southBorder, nil, g.style)
 	}
 
-	for h := range height - 2 {
-		v.SetContent(x, 1+h, g.westBorder, nil, g.style)
-		v.SetContent(x+width-1, 1+h, g.eastBorder, nil, g.style)
+	for h := 1; h < height-1; h++ {
+
+		for ih := 1; ih < int(g.numCellsHorizontal); ih++ {
+			if h%(iCellSizeHeight+1) == 0 {
+				v.SetContent(x+(ih*iCellSizeHeight+ih), y+h, g.crossJunction, nil, g.style)
+				continue
+			}
+
+			v.SetContent(x+(ih*iCellSizeHeight+ih), y+h, g.internalVerticalBorder, nil, g.style)
+		}
+
+		if h%(iCellSizeHeight+1) == 0 {
+			v.SetContent(x, y+h, g.horizontalRightTJunction, nil, g.style)
+			v.SetContent(x+width-1, y+h, g.horizontalLeftTJunction, nil, g.style)
+			continue
+		}
+
+		v.SetContent(x, y+h, g.westBorder, nil, g.style)
+		v.SetContent(x+width-1, y+h, g.eastBorder, nil, g.style)
 	}
 }
 
-func (g grid) drawFill(v views.View) {
+func (g Grid) drawFill(v views.View) {
 
 }
 
-func (g grid) Draw(v views.View) {
+func (g Grid) Draw(v views.View) {
 	g.drawBorders(v)
 	g.drawFill(v)
 }

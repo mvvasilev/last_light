@@ -17,6 +17,14 @@ func (p Position) Y() int {
 	return p.y
 }
 
+func (p Position) XY() (int, int) {
+	return p.x, p.y
+}
+
+func (p Position) XYUint16() (uint16, uint16) {
+	return uint16(p.x), uint16(p.y)
+}
+
 type Size struct {
 	width  int
 	height int
@@ -32,4 +40,24 @@ func (s Size) Width() int {
 
 func (s Size) Height() int {
 	return s.height
+}
+
+func (s Size) WHUint16() (uint16, uint16) {
+	return uint16(s.width), uint16(s.height)
+}
+
+func LimitIncrement(i int, limit int) int {
+	if (i + 1) > limit {
+		return i
+	}
+
+	return i + 1
+}
+
+func LimitDecrement(i int, limit int) int {
+	if (i - 1) < limit {
+		return i
+	}
+
+	return i - 1
 }

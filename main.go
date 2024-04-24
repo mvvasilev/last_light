@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"mvvasilev/last_light/game"
 	"mvvasilev/last_light/render"
 	"os"
 
@@ -18,46 +19,33 @@ func main() {
 		log.Fatalf("%~v", err)
 	}
 
+	g := game.CreateGame()
+
 	c.HandleInput(func(ev *tcell.EventKey) {
-		if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC {
+		if ev.Key() == tcell.KeyCtrlC {
 			c.Stop()
 			os.Exit(0)
 		}
+
+		g.Input(ev)
 	})
 
 	defStyle := tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
-
-	rect := render.CreateRectangle(
-		0, 0, 80, 24,
-		'┌', '─', '┐',
-		'│', '#', '│',
-		'└', '─', '┘',
-		false, true, defStyle,
-	)
-
-	// text := render.CreateText(1, 2, 8, 8, "Hello World! How are you today?", defStyle)
-
-	// grid := render.CreateGrid(
-	// 	11, 1, 3, 3, 3, 3,
-	// 	'┌', '─', '┬', '┐',
-	// 	'│', '#', '│', '│',
-	// 	'├', '─', '┼', '┤',
-	// 	'└', '─', '┴', '┘',
-	// 	defStyle,
-	// )
-
-	layers := render.CreateLayeredDrawContainer()
-
-	layers.Insert(0, rect)
-	// layers.Insert(1, text)
-	// layers.Insert(0, grid)
 
 	c.HandleRender(func(view views.View, deltaTime int64) {
 		fps := 1_000_000 / deltaTime
 
 		fpsText := render.CreateText(0, 0, 16, 1, fmt.Sprintf("%v FPS", fps), defStyle)
 
-		layers.Draw(view)
+		keepGoing := g.Tick(deltaTime)
+
+		if !keepGoing {
+			c.Stop()
+			os.Exit(0)
+		}
+
+		g.Draw(view)
+
 		fpsText.Draw(view)
 	})
 
