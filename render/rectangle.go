@@ -31,7 +31,7 @@ type Rectangle struct {
 	fillRune rune
 }
 
-func CreateBorderlessRectangle(x, y uint16, width, height uint16, fillRune rune, style tcell.Style) Rectangle {
+func CreateBorderlessRectangle(x, y int, width, height int, fillRune rune, style tcell.Style) Rectangle {
 	return CreateRectangle(
 		x, y, width, height,
 		0, 0, 0,
@@ -41,7 +41,7 @@ func CreateBorderlessRectangle(x, y uint16, width, height uint16, fillRune rune,
 	)
 }
 
-func CreateSimpleEmptyRectangle(x, y uint16, width, height uint16, borderRune rune, style tcell.Style) Rectangle {
+func CreateSimpleEmptyRectangle(x, y int, width, height int, borderRune rune, style tcell.Style) Rectangle {
 	return CreateRectangle(
 		x, y, width, height,
 		borderRune, borderRune, borderRune,
@@ -51,7 +51,7 @@ func CreateSimpleEmptyRectangle(x, y uint16, width, height uint16, borderRune ru
 	)
 }
 
-func CreateSimpleRectangle(x uint16, y uint16, width uint16, height uint16, borderRune rune, fillRune rune, style tcell.Style) Rectangle {
+func CreateSimpleRectangle(x int, y int, width int, height int, borderRune rune, fillRune rune, style tcell.Style) Rectangle {
 	return CreateRectangle(
 		x, y, width, height,
 		borderRune, borderRune, borderRune,
@@ -62,7 +62,7 @@ func CreateSimpleRectangle(x uint16, y uint16, width uint16, height uint16, bord
 }
 
 func CreateRectangleV2(
-	x, y uint16, width, height uint16,
+	x, y int, width, height int,
 	upper, middle, lower string,
 	isBorderless, isFilled bool,
 	style tcell.Style,
@@ -91,10 +91,10 @@ func CreateRectangleV2(
 //
 // )
 func CreateRectangle(
-	x uint16,
-	y uint16,
-	width uint16,
-	height uint16,
+	x int,
+	y int,
+	width int,
+	height int,
 	nwCorner, northBorder, neCorner,
 	westBorder, fillRune, eastBorder,
 	swCorner, southBorder, seCorner rune,

@@ -20,11 +20,11 @@ type UISimpleButton struct {
 	highlightedStyle   tcell.Style
 }
 
-func CreateSimpleButton(x, y uint16, text string, unhighlightedStyle, highlightedStyle tcell.Style, onSelect func()) *UISimpleButton {
+func CreateSimpleButton(x, y int, text string, unhighlightedStyle, highlightedStyle tcell.Style, onSelect func()) *UISimpleButton {
 	sb := new(UISimpleButton)
 
 	sb.id = uuid.New()
-	sb.text = render.CreateText(x, y, uint16(utf8.RuneCountInString(text)), 1, text, unhighlightedStyle)
+	sb.text = render.CreateText(x, y, int(utf8.RuneCountInString(text)), 1, text, unhighlightedStyle)
 	sb.isHighlighted = false
 	sb.selectHandler = onSelect
 	sb.highlightedStyle = highlightedStyle
@@ -51,8 +51,8 @@ func (sb *UISimpleButton) Highlight() {
 	newContent := "[ " + sb.text.Content() + " ]"
 
 	sb.text = render.CreateText(
-		uint16(sb.Position().X()-2), uint16(sb.Position().Y()),
-		uint16(utf8.RuneCountInString(newContent)), 1,
+		int(sb.Position().X()-2), int(sb.Position().Y()),
+		int(utf8.RuneCountInString(newContent)), 1,
 		newContent,
 		sb.highlightedStyle,
 	)
@@ -66,8 +66,8 @@ func (sb *UISimpleButton) Unhighlight() {
 	contentLen := utf8.RuneCountInString(content)
 
 	sb.text = render.CreateText(
-		uint16(sb.Position().X()+2), uint16(sb.Position().Y()),
-		uint16(contentLen), 1,
+		int(sb.Position().X()+2), int(sb.Position().Y()),
+		int(contentLen), 1,
 		content,
 		sb.unhighlightedStyle,
 	)
@@ -81,8 +81,8 @@ func (sb *UISimpleButton) UniqueId() uuid.UUID {
 	return sb.id
 }
 
-func (sb *UISimpleButton) MoveTo(x uint16, y uint16) {
-	sb.text = render.CreateText(x, y, uint16(utf8.RuneCountInString(sb.text.Content())), 1, sb.text.Content(), sb.highlightedStyle)
+func (sb *UISimpleButton) MoveTo(x int, y int) {
+	sb.text = render.CreateText(x, y, int(utf8.RuneCountInString(sb.text.Content())), 1, sb.text.Content(), sb.highlightedStyle)
 }
 
 func (sb *UISimpleButton) Position() util.Position {

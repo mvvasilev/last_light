@@ -17,14 +17,14 @@ type UIWindow struct {
 	box   render.Rectangle
 }
 
-func CreateWindow(x, y, width, height uint16, title string, style tcell.Style) *UIWindow {
+func CreateWindow(x, y, width, height int, title string, style tcell.Style) *UIWindow {
 	w := new(UIWindow)
 
 	titleLen := utf8.RuneCountInString(title)
 
-	titlePos := (width / 2) - uint16(titleLen/2)
+	titlePos := (width / 2) - int(titleLen/2)
 
-	w.title = render.CreateText(x+titlePos, y, uint16(titleLen), 1, title, style)
+	w.title = render.CreateText(x+titlePos, y, int(titleLen), 1, title, style)
 
 	w.box = render.CreateRectangle(
 		x, y, width, height,
@@ -41,7 +41,7 @@ func (w *UIWindow) UniqueId() uuid.UUID {
 	return w.id
 }
 
-func (w *UIWindow) MoveTo(x uint16, y uint16) {
+func (w *UIWindow) MoveTo(x int, y int) {
 
 }
 

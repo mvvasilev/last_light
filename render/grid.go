@@ -12,8 +12,8 @@ type Grid struct {
 	id uuid.UUID
 
 	internalCellSize   util.Size
-	numCellsHorizontal uint16
-	numCellsVertical   uint16
+	numCellsHorizontal int
+	numCellsVertical   int
 	position           util.Position
 	style              tcell.Style
 
@@ -40,9 +40,9 @@ type Grid struct {
 }
 
 func CreateSimpleGrid(
-	x, y uint16,
-	cellWidth, cellHeight uint16,
-	numCellsHorizontal, numCellsVertical uint16,
+	x, y int,
+	cellWidth, cellHeight int,
+	numCellsHorizontal, numCellsVertical int,
 	borderRune, fillRune rune,
 	style tcell.Style,
 ) Grid {
@@ -61,12 +61,12 @@ func CreateSimpleGrid(
 // '├', '─', '┼', '┤',
 // '└', '─', '┴', '┘',
 func CreateGrid(
-	x uint16,
-	y uint16,
-	cellWidth uint16,
-	cellHeight uint16,
-	numCellsHorizontal uint16,
-	numCellsVertical uint16,
+	x int,
+	y int,
+	cellWidth int,
+	cellHeight int,
+	numCellsHorizontal int,
+	numCellsVertical int,
 	nwCorner, northBorder, verticalDownwardsTJunction, neCorner,
 	westBorder, fillRune, internalVerticalBorder, eastBorder,
 	horizontalRightTJunction, internalHorizontalBorder, crossJunction, horizontalLeftTJunction,

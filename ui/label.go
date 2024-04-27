@@ -15,7 +15,7 @@ type UILabel struct {
 	text *render.Text
 }
 
-func CreateUILabel(x, y uint16, width, height uint16, content string, style tcell.Style) *UILabel {
+func CreateUILabel(x, y int, width, height int, content string, style tcell.Style) *UILabel {
 	label := new(UILabel)
 
 	label.id = uuid.New()
@@ -24,11 +24,11 @@ func CreateUILabel(x, y uint16, width, height uint16, content string, style tcel
 	return label
 }
 
-func CreateSingleLineUILabel(x, y uint16, content string, style tcell.Style) *UILabel {
+func CreateSingleLineUILabel(x, y int, content string, style tcell.Style) *UILabel {
 	label := new(UILabel)
 
 	label.id = uuid.New()
-	label.text = render.CreateText(x, y, uint16(utf8.RuneCountInString(content)), 1, content, style)
+	label.text = render.CreateText(x, y, int(utf8.RuneCountInString(content)), 1, content, style)
 
 	return label
 }
@@ -37,8 +37,8 @@ func (t *UILabel) UniqueId() uuid.UUID {
 	return t.id
 }
 
-func (t *UILabel) MoveTo(x uint16, y uint16) {
-	t.text = render.CreateText(x, y, uint16(t.text.Size().Width()), uint16(t.Size().Height()), t.text.Content(), t.text.Style())
+func (t *UILabel) MoveTo(x int, y int) {
+	t.text = render.CreateText(x, y, int(t.text.Size().Width()), int(t.Size().Height()), t.text.Content(), t.text.Style())
 }
 
 func (t *UILabel) Position() util.Position {

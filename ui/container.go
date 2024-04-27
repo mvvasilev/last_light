@@ -33,7 +33,7 @@ type UIContainer struct {
 	elements []UIElement
 }
 
-func CreateUIContainer(x, y uint16, width, height uint16, layout UIContainerLayout) *UIContainer {
+func CreateUIContainer(x, y int, width, height int, layout UIContainerLayout) *UIContainer {
 	container := new(UIContainer)
 
 	container.id = uuid.New()
@@ -57,7 +57,7 @@ func (uic *UIContainer) UniqueId() uuid.UUID {
 	return uic.id
 }
 
-func (uic *UIContainer) MoveTo(x, y uint16) {
+func (uic *UIContainer) MoveTo(x, y int) {
 	uic.position = util.PositionAt(x, y)
 }
 

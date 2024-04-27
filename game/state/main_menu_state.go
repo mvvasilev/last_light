@@ -6,7 +6,6 @@ import (
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/gdamore/tcell/v2/views"
 )
 
 type MainMenuState struct {
@@ -78,10 +77,14 @@ func (mms *MainMenuState) OnTick(dt int64) GameState {
 	return mms
 }
 
-func (mms *MainMenuState) OnDraw(c views.View) {
-	mms.menuTitle.Draw(c)
+func (mms *MainMenuState) CollectDrawables() []render.Drawable {
+	arr := make([]render.Drawable, 0)
+
+	arr = append(arr, mms.menuTitle)
 
 	for _, b := range mms.buttons {
-		b.Draw(c)
+		arr = append(arr, b)
 	}
+
+	return arr
 }

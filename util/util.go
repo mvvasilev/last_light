@@ -5,7 +5,7 @@ type Position struct {
 	y int
 }
 
-func PositionAt(x uint16, y uint16) Position {
+func PositionAt(x int, y int) Position {
 	return Position{int(x), int(y)}
 }
 
@@ -21,8 +21,10 @@ func (p Position) XY() (int, int) {
 	return p.x, p.y
 }
 
-func (p Position) XYUint16() (uint16, uint16) {
-	return uint16(p.x), uint16(p.y)
+func (p Position) WithOffset(xOffset int, yOffset int) Position {
+	p.x = p.x + xOffset
+	p.y = p.y + yOffset
+	return p
 }
 
 type Size struct {
@@ -30,8 +32,12 @@ type Size struct {
 	height int
 }
 
-func SizeOf(width uint16, height uint16) Size {
+func SizeOf(width int, height int) Size {
 	return Size{int(width), int(height)}
+}
+
+func SizeOfInt(width int, height int) Size {
+	return Size{width, height}
 }
 
 func (s Size) Width() int {
@@ -42,8 +48,8 @@ func (s Size) Height() int {
 	return s.height
 }
 
-func (s Size) WHUint16() (uint16, uint16) {
-	return uint16(s.width), uint16(s.height)
+func (s Size) WH() (int, int) {
+	return s.width, s.height
 }
 
 func LimitIncrement(i int, limit int) int {

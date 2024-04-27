@@ -15,7 +15,7 @@ type Raw struct {
 	style    tcell.Style
 }
 
-func CreateRawDrawable(x, y uint16, style tcell.Style, buffer ...string) *Raw {
+func CreateRawDrawable(x, y int, style tcell.Style, buffer ...string) *Raw {
 	r := new(Raw)
 
 	r.position = util.PositionAt(x, y)
@@ -30,8 +30,41 @@ func CreateRawDrawable(x, y uint16, style tcell.Style, buffer ...string) *Raw {
 	return r
 }
 
+func CreateRawDrawableFromBuffer(x, y int, style tcell.Style, buffer [][]rune) *Raw {
+	r := new(Raw)
+
+	r.position = util.PositionAt(x, y)
+	r.buffer = buffer
+
+	return r
+}
+
 func (r *Raw) UniqueId() uuid.UUID {
 	return r.id
+}
+
+func (r *Raw) DrawWithin(screenX, screenY, originX, originY, width, height int, v views.View) {
+	for h := originY; h < originY+height; h++ {
+
+		if h < 0 || h >= len(r.buffer) {
+			screenY += 1
+			continue
+		}
+
+		for w := originX; w < originX+width; w++ {
+			if w < 0 || w >= len(r.buffer[h]) {
+				screenX += 1
+				continue
+			}
+
+			v.SetContent(screenX, screenY, r.buffer[h][w], nil, r.style)
+
+			screenX += 1
+		}
+
+		screenX = 0
+		screenY += 1
+	}
 }
 
 func (r *Raw) Draw(v views.View) {

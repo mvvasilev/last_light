@@ -19,8 +19,8 @@ type Text struct {
 }
 
 func CreateText(
-	x, y uint16,
-	width, height uint16,
+	x, y int,
+	width, height int,
 	content string,
 	style tcell.Style,
 ) *Text {

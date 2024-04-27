@@ -6,7 +6,6 @@ import (
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/gdamore/tcell/v2/views"
 )
 
 type PauseGameState struct {
@@ -27,13 +26,13 @@ func PauseGame(prevState PausableState) *PauseGameState {
 
 	highlightStyle := tcell.StyleDefault.Attributes(tcell.AttrBold)
 
-	s.pauseMenuWindow = ui.CreateWindow(uint16(render.TERMINAL_SIZE_WIDTH)/2-15, uint16(render.TERMINAL_SIZE_HEIGHT)/2-7, 30, 14, "PAUSED", tcell.StyleDefault)
+	s.pauseMenuWindow = ui.CreateWindow(int(render.TERMINAL_SIZE_WIDTH)/2-15, int(render.TERMINAL_SIZE_HEIGHT)/2-7, 30, 14, "PAUSED", tcell.StyleDefault)
 	s.buttons = make([]*ui.UISimpleButton, 0)
 	s.buttons = append(
 		s.buttons,
 		ui.CreateSimpleButton(
-			uint16(s.pauseMenuWindow.Position().X())+3,
-			uint16(s.pauseMenuWindow.Position().Y())+1,
+			int(s.pauseMenuWindow.Position().X())+3,
+			int(s.pauseMenuWindow.Position().Y())+1,
 			"Resume",
 			tcell.StyleDefault,
 			highlightStyle,
@@ -45,8 +44,8 @@ func PauseGame(prevState PausableState) *PauseGameState {
 	s.buttons = append(
 		s.buttons,
 		ui.CreateSimpleButton(
-			uint16(s.pauseMenuWindow.Position().X())+3,
-			uint16(s.pauseMenuWindow.Position().Y())+3,
+			int(s.pauseMenuWindow.Position().X())+3,
+			int(s.pauseMenuWindow.Position().Y())+3,
 			"Exit To Main Menu",
 			tcell.StyleDefault,
 			highlightStyle,
@@ -97,12 +96,16 @@ func (pg *PauseGameState) OnTick(dt int64) GameState {
 	return pg
 }
 
-func (pg *PauseGameState) OnDraw(c views.View) {
-	pg.prevState.OnDraw(c)
+func (pg *PauseGameState) CollectDrawables() []render.Drawable {
+	arr := make([]render.Drawable, 0)
 
-	pg.pauseMenuWindow.Draw(c)
+	arr = append(arr, pg.prevState.CollectDrawables()...)
+
+	arr = append(arr, pg.pauseMenuWindow)
 
 	for _, b := range pg.buttons {
-		b.Draw(c)
+		arr = append(arr, b)
 	}
+
+	return arr
 }

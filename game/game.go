@@ -2,13 +2,15 @@ package game
 
 import (
 	"mvvasilev/last_light/game/state"
+	"mvvasilev/last_light/render"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/gdamore/tcell/v2/views"
 )
 
 type Game struct {
 	state state.GameState
+
+	quitGame bool
 }
 
 func CreateGame() *Game {
@@ -20,10 +22,18 @@ func CreateGame() *Game {
 }
 
 func (g *Game) Input(ev *tcell.EventKey) {
+	if ev.Key() == tcell.KeyCtrlC {
+		g.quitGame = true
+	}
+
 	g.state.OnInput(ev)
 }
 
 func (g *Game) Tick(dt int64) bool {
+	if g.quitGame {
+		return false
+	}
+
 	s := g.state.OnTick(dt)
 
 	switch s.(type) {
@@ -36,6 +46,6 @@ func (g *Game) Tick(dt int64) bool {
 	return true
 }
 
-func (g *Game) Draw(v views.View) {
-	g.state.OnDraw(v)
+func (g *Game) CollectDrawables() []render.Drawable {
+	return g.state.CollectDrawables()
 }

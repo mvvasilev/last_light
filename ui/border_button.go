@@ -41,7 +41,7 @@ func (b *UIBorderedButton) UniqueId() uuid.UUID {
 	return b.id
 }
 
-func (b *UIBorderedButton) MoveTo(x uint16, y uint16) {
+func (b *UIBorderedButton) MoveTo(x int, y int) {
 	panic("not implemented") // TODO: Implement
 }
 

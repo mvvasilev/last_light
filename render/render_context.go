@@ -2,8 +2,8 @@ package render
 
 import (
 	"errors"
+	"fmt"
 	"log"
-	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
@@ -22,39 +22,51 @@ type Drawable interface {
 	Draw(v views.View)
 }
 
+func Multidraw(drawables ...Drawable) []Drawable {
+	arr := make([]Drawable, 0)
+
+	if drawables == nil {
+		return arr
+	}
+
+	for _, d := range drawables {
+		if d == nil {
+			continue
+		}
+
+		arr = append(arr, d)
+	}
+
+	return arr
+}
+
 type RenderContext struct {
-	screen       tcell.Screen
-	view         *views.ViewPort
-	defaultStyle tcell.Style
+	screen tcell.Screen
+	view   *views.ViewPort
 
-	events chan tcell.Event
-	quit   chan struct{}
-
-	lastRenderTime time.Time
-
-	renderHandler func(view views.View, deltaTime int64)
-	inputHandler  func(ev *tcell.EventKey)
+	events    chan tcell.Event
+	quit      chan struct{}
+	drawables chan Drawable
 }
 
 func CreateRenderContext() (*RenderContext, error) {
-	s, err := tcell.NewScreen()
+	screen, sErr := tcell.NewScreen()
 
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
+	if sErr != nil {
+		log.Fatalf("%~v", sErr)
 	}
 
 	stopScreen := func() {
-		s.Fini()
+		screen.Fini()
 	}
 
-	if err := s.Init(); err != nil {
+	if err := screen.Init(); err != nil {
 		stopScreen()
 		log.Fatal(err)
 		return nil, err
 	}
 
-	width, height := s.Size()
+	width, height := screen.Size()
 
 	if width < TERMINAL_SIZE_WIDTH || height < TERMINAL_SIZE_HEIGHT {
 		stopScreen()
@@ -63,27 +75,25 @@ func CreateRenderContext() (*RenderContext, error) {
 	}
 
 	view := views.NewViewPort(
-		s,
+		screen,
 		(width/2)-(TERMINAL_SIZE_WIDTH/2),
 		(height/2)-(TERMINAL_SIZE_HEIGHT/2),
 		TERMINAL_SIZE_WIDTH,
 		TERMINAL_SIZE_HEIGHT,
 	)
 
-	defStyle := tcell.StyleDefault.Background(DEFAULT_STYLE_BACKGROUND).Foreground(DEFAULT_STYLE_FOREGROUND)
-
 	events := make(chan tcell.Event)
 	quit := make(chan struct{})
 
-	go s.ChannelEvents(events, quit)
+	go screen.ChannelEvents(events, quit)
 
 	context := new(RenderContext)
 
-	context.screen = s
-	context.defaultStyle = defStyle
+	context.screen = screen
 	context.events = events
 	context.quit = quit
 	context.view = view
+	context.drawables = make(chan Drawable)
 
 	return context, nil
 }
@@ -92,12 +102,31 @@ func (c *RenderContext) Stop() {
 	c.screen.Fini()
 }
 
-func (c *RenderContext) HandleRender(renderHandler func(view views.View, deltaTime int64)) {
-	c.renderHandler = renderHandler
+func (c *RenderContext) CollectInputEvents() []*tcell.EventKey {
+	events := make([]tcell.Event, len(c.events))
+
+	select {
+	case e := <-c.events:
+		events = append(events, e)
+	default:
+	}
+
+	inputEvents := make([]*tcell.EventKey, 0, len(events))
+
+	for _, e := range events {
+		switch ev := e.(type) {
+		case *tcell.EventKey:
+			inputEvents = append(inputEvents, ev)
+		case *tcell.EventResize:
+			c.onResize(ev)
+		}
+	}
+
+	return inputEvents
 }
 
-func (c *RenderContext) HandleInput(inputHandler func(ev *tcell.EventKey)) {
-	c.inputHandler = inputHandler
+func (c *RenderContext) DrawableQueue() chan Drawable {
+	return c.drawables
 }
 
 func (c *RenderContext) onResize(ev *tcell.EventResize) {
@@ -115,33 +144,18 @@ func (c *RenderContext) onResize(ev *tcell.EventResize) {
 	c.screen.Sync()
 }
 
-func (c *RenderContext) BeginRendering() {
-	c.lastRenderTime = time.Now()
+func (c *RenderContext) Draw(deltaTime int64, drawables []Drawable) {
+	fps := 1_000_000 / deltaTime
 
-	for {
-		deltaTime := 1 + time.Since(c.lastRenderTime).Microseconds()
-		c.lastRenderTime = time.Now()
+	c.view.Clear()
 
-		c.screen.Clear()
+	fpsText := CreateText(0, 0, 16, 1, fmt.Sprintf("%v FPS", fps), tcell.StyleDefault)
 
-		c.renderHandler(c.view, deltaTime)
-
-		c.screen.Show()
-
-		select {
-		case ev, ok := <-c.events:
-
-			if !ok {
-				break
-			}
-
-			switch ev := ev.(type) {
-			case *tcell.EventResize:
-				c.onResize(ev)
-			case *tcell.EventKey:
-				c.inputHandler(ev)
-			}
-		default:
-		}
+	for _, d := range drawables {
+		d.Draw(c.view)
 	}
+
+	fpsText.Draw(c.view)
+
+	c.screen.Show()
 }

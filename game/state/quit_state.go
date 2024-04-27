@@ -1,8 +1,9 @@
 package state
 
 import (
+	"mvvasilev/last_light/render"
+
 	"github.com/gdamore/tcell/v2"
-	"github.com/gdamore/tcell/v2/views"
 )
 
 type QuitState struct {
@@ -16,6 +17,6 @@ func (q *QuitState) OnTick(dt int64) GameState {
 	return q
 }
 
-func (q *QuitState) OnDraw(c views.View) {
-
+func (q *QuitState) CollectDrawables() []render.Drawable {
+	return render.Multidraw(nil)
 }
