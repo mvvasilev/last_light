@@ -1,5 +1,7 @@
 package util
 
+import "math/rand"
+
 type Position struct {
 	x int
 	y int
@@ -36,10 +38,6 @@ func SizeOf(width int, height int) Size {
 	return Size{int(width), int(height)}
 }
 
-func SizeOfInt(width int, height int) Size {
-	return Size{width, height}
-}
-
 func (s Size) Width() int {
 	return s.width
 }
@@ -50,6 +48,10 @@ func (s Size) Height() int {
 
 func (s Size) WH() (int, int) {
 	return s.width, s.height
+}
+
+func (s Size) Area() int {
+	return s.width * s.height
 }
 
 func LimitIncrement(i int, limit int) int {
@@ -66,4 +68,8 @@ func LimitDecrement(i int, limit int) int {
 	}
 
 	return i - 1
+}
+
+func RandInt(min, max int) int {
+	return min + rand.Intn(max-min)
 }

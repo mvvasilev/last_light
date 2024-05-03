@@ -10,6 +10,8 @@ import (
 type Player struct {
 	id       uuid.UUID
 	position util.Position
+
+	inventory *Inventory
 }
 
 func CreatePlayer(x, y int) *Player {
@@ -17,6 +19,7 @@ func CreatePlayer(x, y int) *Player {
 
 	p.id = uuid.New()
 	p.position = util.PositionAt(x, y)
+	p.inventory = CreateInventory(util.SizeOf(8, 4))
 
 	return p
 }
@@ -33,12 +36,20 @@ func (p *Player) Move(dir Direction) {
 	p.position = p.Position().WithOffset(MovementDirectionOffset(dir))
 }
 
-func (p *Player) Presentation() rune {
-	return '@'
+func (p *Player) Presentation() (rune, tcell.Style) {
+	return '@', tcell.StyleDefault
 }
 
 func (p *Player) Passable() bool {
 	return false
+}
+
+func (p *Player) Transparent() bool {
+	return false
+}
+
+func (p *Player) Inventory() *Inventory {
+	return p.inventory
 }
 
 func (p *Player) Input(e *tcell.EventKey) {

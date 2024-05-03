@@ -69,8 +69,11 @@ func (t *Text) Draw(s views.View) {
 	currentVPos := 0
 
 	drawText := func(text string) {
-		for i, r := range text {
-			s.SetContent(x+currentHPos+i, y+currentVPos, r, nil, t.style)
+		lastPos := 0
+
+		for _, r := range text {
+			s.SetContent(x+currentHPos+lastPos, y+currentVPos, r, nil, t.style)
+			lastPos++
 		}
 	}
 

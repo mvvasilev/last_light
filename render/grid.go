@@ -16,6 +16,7 @@ type Grid struct {
 	numCellsVertical   int
 	position           util.Position
 	style              tcell.Style
+	highlightStyle     tcell.Style
 
 	northBorder rune
 	westBorder  rune
@@ -36,6 +37,9 @@ type Grid struct {
 	horizontalRightTJunction   rune
 	crossJunction              rune
 
+	isHighlighted   bool
+	highlightedGrid util.Position
+
 	fillRune rune
 }
 
@@ -44,15 +48,15 @@ func CreateSimpleGrid(
 	cellWidth, cellHeight int,
 	numCellsHorizontal, numCellsVertical int,
 	borderRune, fillRune rune,
-	style tcell.Style,
-) Grid {
+	style tcell.Style, highlightStyle tcell.Style,
+) *Grid {
 	return CreateGrid(
 		x, y, cellWidth, cellHeight, numCellsHorizontal, numCellsVertical,
 		borderRune, borderRune, borderRune, borderRune,
 		borderRune, fillRune, borderRune, borderRune,
 		borderRune, borderRune, borderRune, borderRune,
 		borderRune, borderRune, borderRune, borderRune,
-		style,
+		style, highlightStyle,
 	)
 }
 
@@ -71,15 +75,17 @@ func CreateGrid(
 	westBorder, fillRune, internalVerticalBorder, eastBorder,
 	horizontalRightTJunction, internalHorizontalBorder, crossJunction, horizontalLeftTJunction,
 	swCorner, southBorder, verticalUpwardsTJunction, seCorner rune,
-	style tcell.Style,
-) Grid {
-	return Grid{
+	style tcell.Style, highlightStyle tcell.Style,
+) *Grid {
+	return &Grid{
 		id:                         uuid.New(),
 		internalCellSize:           util.SizeOf(cellWidth, cellHeight),
 		numCellsHorizontal:         numCellsHorizontal,
 		numCellsVertical:           numCellsVertical,
+		isHighlighted:              false,
 		position:                   util.PositionAt(x, y),
 		style:                      style,
+		highlightStyle:             highlightStyle,
 		northBorder:                northBorder,
 		eastBorder:                 eastBorder,
 		southBorder:                southBorder,
@@ -100,8 +106,17 @@ func CreateGrid(
 	}
 }
 
-func (g Grid) UniqueId() uuid.UUID {
+func (g *Grid) UniqueId() uuid.UUID {
 	return g.id
+}
+
+func (g *Grid) Highlight(highlightedGrid util.Position) {
+	g.isHighlighted = true
+	g.highlightedGrid = highlightedGrid
+}
+
+func (g *Grid) Unhighlight() {
+	g.isHighlighted = false
 }
 
 // C###T###T###C
@@ -117,7 +132,7 @@ func (g Grid) UniqueId() uuid.UUID {
 // #   #   #   #
 // #   #   #   #
 // C###T###T###C
-func (g Grid) drawBorders(v views.View) {
+func (g *Grid) drawBorders(v views.View) {
 	iCellSizeWidth := g.internalCellSize.Width()
 	iCellSizeHeight := g.internalCellSize.Height()
 	width := 1 + (iCellSizeWidth * int(g.numCellsHorizontal)) + (int(g.numCellsHorizontal))
@@ -125,59 +140,61 @@ func (g Grid) drawBorders(v views.View) {
 	x := g.position.X()
 	y := g.position.Y()
 
-	v.SetContent(x, y, g.nwCorner, nil, g.style)
-	v.SetContent(x+width-1, y, g.neCorner, nil, g.style)
-	v.SetContent(x, y+height-1, g.swCorner, nil, g.style)
-	v.SetContent(x+width-1, y+height-1, g.seCorner, nil, g.style)
+	style := g.style
 
-	for w := 1; w < width-1; w++ {
-
-		for iw := 1; iw < int(g.numCellsVertical); iw++ {
-			if w%(iCellSizeWidth+1) == 0 {
-				v.SetContent(x+w, y+(iw*iCellSizeHeight+iw), g.crossJunction, nil, g.style)
-				continue
-			}
-
-			v.SetContent(x+w, y+(iw*iCellSizeHeight+iw), g.internalHorizontalBorder, nil, g.style)
+	for w := 0; w < width; w++ {
+		for iw := 1; iw < g.numCellsVertical; iw++ {
+			v.SetContent(x+w, y+(iw*iCellSizeHeight+iw), g.internalHorizontalBorder, nil, style)
 		}
 
 		if w%(iCellSizeWidth+1) == 0 {
-			v.SetContent(x+w, y, g.verticalDownwardsTJunction, nil, g.style)
-			v.SetContent(x+w, y+height-1, g.verticalUpwardsTJunction, nil, g.style)
+			v.SetContent(x+w, y, g.verticalDownwardsTJunction, nil, style)
+			v.SetContent(x+w, y+height-1, g.verticalUpwardsTJunction, nil, style)
 			continue
 		}
 
-		v.SetContent(x+w, y, g.northBorder, nil, g.style)
-		v.SetContent(x+w, y+height-1, g.southBorder, nil, g.style)
+		v.SetContent(x+w, y, g.northBorder, nil, style)
+		v.SetContent(x+w, y+height-1, g.southBorder, nil, style)
 	}
 
-	for h := 1; h < height-1; h++ {
+	for h := 0; h < height; h++ {
+		if h == 0 {
+			v.SetContent(x, y, g.nwCorner, nil, style)
+			v.SetContent(x, y+height-1, g.swCorner, nil, style)
+			continue
+		}
 
-		for ih := 1; ih < int(g.numCellsHorizontal); ih++ {
+		if h == height-1 {
+			v.SetContent(x+width-1, y, g.neCorner, nil, style)
+			v.SetContent(x+width-1, y+height-1, g.seCorner, nil, style)
+			continue
+		}
+
+		for ih := 1; ih < g.numCellsHorizontal; ih++ {
 			if h%(iCellSizeHeight+1) == 0 {
-				v.SetContent(x+(ih*iCellSizeHeight+ih), y+h, g.crossJunction, nil, g.style)
+				v.SetContent(x+(ih*iCellSizeWidth+ih), y+h, g.crossJunction, nil, style)
 				continue
 			}
 
-			v.SetContent(x+(ih*iCellSizeHeight+ih), y+h, g.internalVerticalBorder, nil, g.style)
+			v.SetContent(x+(ih*iCellSizeWidth+ih), y+h, g.internalVerticalBorder, nil, style)
 		}
 
 		if h%(iCellSizeHeight+1) == 0 {
-			v.SetContent(x, y+h, g.horizontalRightTJunction, nil, g.style)
-			v.SetContent(x+width-1, y+h, g.horizontalLeftTJunction, nil, g.style)
+			v.SetContent(x, y+h, g.horizontalRightTJunction, nil, style)
+			v.SetContent(x+width-1, y+h, g.horizontalLeftTJunction, nil, style)
 			continue
 		}
 
-		v.SetContent(x, y+h, g.westBorder, nil, g.style)
-		v.SetContent(x+width-1, y+h, g.eastBorder, nil, g.style)
+		v.SetContent(x, y+h, g.westBorder, nil, style)
+		v.SetContent(x+width-1, y+h, g.eastBorder, nil, style)
 	}
 }
 
-func (g Grid) drawFill(v views.View) {
+func (g *Grid) drawFill(v views.View) {
 
 }
 
-func (g Grid) Draw(v views.View) {
+func (g *Grid) Draw(v views.View) {
 	g.drawBorders(v)
 	g.drawFill(v)
 }

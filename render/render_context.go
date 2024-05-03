@@ -149,7 +149,9 @@ func (c *RenderContext) Draw(deltaTime int64, drawables []Drawable) {
 
 	c.view.Clear()
 
-	fpsText := CreateText(0, 0, 16, 1, fmt.Sprintf("%v FPS", fps), tcell.StyleDefault)
+	msPerFrame := float32(fps) / 1000.0
+
+	fpsText := CreateText(0, 0, 16, 1, fmt.Sprintf("%vms", msPerFrame), tcell.StyleDefault)
 
 	for _, d := range drawables {
 		d.Draw(c.view)

@@ -50,14 +50,15 @@ func (vp *Viewport) ScreenLocation() util.Position {
 	return vp.screenLocation
 }
 
-func (vp *Viewport) DrawFromProvider(v views.View, provider func(x, y int) rune) {
+func (vp *Viewport) DrawFromProvider(v views.View, provider func(x, y int) (rune, tcell.Style)) {
 	width, height := vp.viewportSize.WH()
 	originX, originY := vp.viewportCenter.WithOffset(-width/2, -height/2).XY()
 	screenX, screenY := vp.screenLocation.XY()
 
 	for h := originY; h < originY+height; h++ {
 		for w := originX; w < originX+width; w++ {
-			v.SetContent(screenX, screenY, provider(w, h), nil, vp.style)
+			r, style := provider(w, h)
+			v.SetContent(screenX, screenY, r, nil, style)
 
 			screenX += 1
 		}

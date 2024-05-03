@@ -29,3 +29,9 @@
         - Underground City ( Caverns + Dungeon combo )
 - Objective: Pick up the Last Light and bring it to its Altar ( Altar of the Last Light )
     - The light is always on level 9, but the Altar can be anywhere
+
+Items:
+- `»o>` - fish
+- `╪══` - longsword
+- `o─╖`
+- `█▄`
