@@ -1,4 +1,4 @@
-package render
+package engine
 
 import (
 	"mvvasilev/last_light/util"

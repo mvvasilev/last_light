@@ -1,4 +1,4 @@
-package render
+package engine
 
 import (
 	"mvvasilev/last_light/util"
@@ -117,6 +117,10 @@ func (g *Grid) Highlight(highlightedGrid util.Position) {
 
 func (g *Grid) Unhighlight() {
 	g.isHighlighted = false
+}
+
+func (g *Grid) Position() util.Position {
+	return g.position
 }
 
 // C###T###T###C

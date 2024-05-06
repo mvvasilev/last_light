@@ -2,13 +2,21 @@ package model
 
 import "mvvasilev/last_light/util"
 
-type Inventory struct {
+type Inventory interface {
+	Items() []*Item
+	Shape() util.Size
+	Push(item Item) bool
+	Drop(x, y int) *Item
+	ItemAt(x, y int) *Item
+}
+
+type BasicInventory struct {
 	contents []*Item
 	shape    util.Size
 }
 
-func CreateInventory(shape util.Size) *Inventory {
-	inv := new(Inventory)
+func CreateInventory(shape util.Size) *BasicInventory {
+	inv := new(BasicInventory)
 
 	inv.contents = make([]*Item, 0, shape.Height()*shape.Width())
 	inv.shape = shape
@@ -16,15 +24,15 @@ func CreateInventory(shape util.Size) *Inventory {
 	return inv
 }
 
-func (i *Inventory) Items() (items []*Item) {
+func (i *BasicInventory) Items() (items []*Item) {
 	return i.contents
 }
 
-func (i *Inventory) Shape() util.Size {
+func (i *BasicInventory) Shape() util.Size {
 	return i.shape
 }
 
-func (i *Inventory) Push(item Item) (success bool) {
+func (i *BasicInventory) Push(item Item) (success bool) {
 	if len(i.contents) == i.shape.Area() {
 		return false
 	}
@@ -60,17 +68,21 @@ func (i *Inventory) Push(item Item) (success bool) {
 	return true
 }
 
-func (i *Inventory) Drop(x, y int) {
+func (i *BasicInventory) Drop(x, y int) *Item {
 	index := y*i.shape.Width() + x
 
 	if index > len(i.contents)-1 {
-		return
+		return nil
 	}
 
+	item := i.contents[index]
+
 	i.contents[index] = nil
+
+	return item
 }
 
-func (i *Inventory) ItemAt(x, y int) (item *Item) {
+func (i *BasicInventory) ItemAt(x, y int) (item *Item) {
 	index := y*i.shape.Width() + x
 
 	if index > len(i.contents)-1 {

@@ -1,7 +1,7 @@
 package state
 
 import (
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -9,7 +9,7 @@ import (
 type GameState interface {
 	OnInput(e *tcell.EventKey)
 	OnTick(dt int64) GameState
-	CollectDrawables() []render.Drawable
+	CollectDrawables() []engine.Drawable
 }
 
 type PausableState interface {

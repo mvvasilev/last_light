@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/util"
 	"strings"
 	"unicode/utf8"
@@ -14,7 +14,7 @@ import (
 type UISimpleButton struct {
 	id                 uuid.UUID
 	isHighlighted      bool
-	text               *render.Text
+	text               *engine.Text
 	selectHandler      func()
 	unhighlightedStyle tcell.Style
 	highlightedStyle   tcell.Style
@@ -24,7 +24,7 @@ func CreateSimpleButton(x, y int, text string, unhighlightedStyle, highlightedSt
 	sb := new(UISimpleButton)
 
 	sb.id = uuid.New()
-	sb.text = render.CreateText(x, y, int(utf8.RuneCountInString(text)), 1, text, unhighlightedStyle)
+	sb.text = engine.CreateText(x, y, int(utf8.RuneCountInString(text)), 1, text, unhighlightedStyle)
 	sb.isHighlighted = false
 	sb.selectHandler = onSelect
 	sb.highlightedStyle = highlightedStyle
@@ -50,7 +50,7 @@ func (sb *UISimpleButton) Highlight() {
 
 	newContent := "[ " + sb.text.Content() + " ]"
 
-	sb.text = render.CreateText(
+	sb.text = engine.CreateText(
 		int(sb.Position().X()-2), int(sb.Position().Y()),
 		int(utf8.RuneCountInString(newContent)), 1,
 		newContent,
@@ -65,7 +65,7 @@ func (sb *UISimpleButton) Unhighlight() {
 	content = strings.Trim(content, "[ ")
 	contentLen := utf8.RuneCountInString(content)
 
-	sb.text = render.CreateText(
+	sb.text = engine.CreateText(
 		int(sb.Position().X()+2), int(sb.Position().Y()),
 		int(contentLen), 1,
 		content,
@@ -82,7 +82,7 @@ func (sb *UISimpleButton) UniqueId() uuid.UUID {
 }
 
 func (sb *UISimpleButton) MoveTo(x int, y int) {
-	sb.text = render.CreateText(x, y, int(utf8.RuneCountInString(sb.text.Content())), 1, sb.text.Content(), sb.highlightedStyle)
+	sb.text = engine.CreateText(x, y, int(utf8.RuneCountInString(sb.text.Content())), 1, sb.text.Content(), sb.highlightedStyle)
 }
 
 func (sb *UISimpleButton) Position() util.Position {

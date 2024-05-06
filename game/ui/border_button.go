@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
@@ -12,8 +12,8 @@ import (
 type UIBorderedButton struct {
 	id uuid.UUID
 
-	text   render.Text
-	border render.Rectangle
+	text   engine.Text
+	border engine.Rectangle
 
 	isSelected bool
 

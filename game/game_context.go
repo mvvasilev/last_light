@@ -2,7 +2,7 @@ package game
 
 import (
 	"log"
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 	"os"
 	"time"
 )
@@ -10,7 +10,7 @@ import (
 const TICK_RATE int64 = 50 // tick every 50ms ( 20 ticks per second )
 
 type GameContext struct {
-	renderContext *render.RenderContext
+	renderContext *engine.RenderContext
 
 	game *Game
 }
@@ -18,7 +18,7 @@ type GameContext struct {
 func CreateGameContext() *GameContext {
 	gc := new(GameContext)
 
-	rc, err := render.CreateRenderContext()
+	rc, err := engine.CreateRenderContext()
 
 	if err != nil {
 		log.Fatalf("%~v", err)

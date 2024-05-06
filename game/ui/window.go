@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/util"
 	"unicode/utf8"
 
@@ -13,8 +13,8 @@ import (
 type UIWindow struct {
 	id uuid.UUID
 
-	title *render.Text
-	box   render.Rectangle
+	title *engine.Text
+	box   engine.Rectangle
 }
 
 func CreateWindow(x, y, width, height int, title string, style tcell.Style) *UIWindow {
@@ -24,9 +24,9 @@ func CreateWindow(x, y, width, height int, title string, style tcell.Style) *UIW
 
 	titlePos := (width / 2) - int(titleLen/2)
 
-	w.title = render.CreateText(x+titlePos, y, int(titleLen), 1, title, style)
+	w.title = engine.CreateText(x+titlePos, y, int(titleLen), 1, title, style)
 
-	w.box = render.CreateRectangle(
+	w.box = engine.CreateRectangle(
 		x, y, width, height,
 		'┌', '─', '┐',
 		'│', ' ', '│',

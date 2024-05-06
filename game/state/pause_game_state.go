@@ -1,8 +1,8 @@
 package state
 
 import (
-	"mvvasilev/last_light/render"
-	"mvvasilev/last_light/ui"
+	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/ui"
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
@@ -26,7 +26,7 @@ func PauseGame(prevState PausableState) *PauseGameState {
 
 	highlightStyle := tcell.StyleDefault.Attributes(tcell.AttrBold)
 
-	s.pauseMenuWindow = ui.CreateWindow(int(render.TERMINAL_SIZE_WIDTH)/2-15, int(render.TERMINAL_SIZE_HEIGHT)/2-7, 30, 14, "PAUSED", tcell.StyleDefault)
+	s.pauseMenuWindow = ui.CreateWindow(int(engine.TERMINAL_SIZE_WIDTH)/2-15, int(engine.TERMINAL_SIZE_HEIGHT)/2-7, 30, 14, "PAUSED", tcell.StyleDefault)
 	s.buttons = make([]*ui.UISimpleButton, 0)
 	s.buttons = append(
 		s.buttons,
@@ -96,8 +96,8 @@ func (pg *PauseGameState) OnTick(dt int64) GameState {
 	return pg
 }
 
-func (pg *PauseGameState) CollectDrawables() []render.Drawable {
-	arr := make([]render.Drawable, 0)
+func (pg *PauseGameState) CollectDrawables() []engine.Drawable {
+	arr := make([]engine.Drawable, 0)
 
 	arr = append(arr, pg.prevState.CollectDrawables()...)
 

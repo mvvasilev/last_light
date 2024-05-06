@@ -2,9 +2,9 @@ package state
 
 import (
 	"math/rand"
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
 	"mvvasilev/last_light/game/world"
-	"mvvasilev/last_light/render"
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
@@ -16,7 +16,7 @@ type PlayingState struct {
 	entityMap *world.EntityMap
 	level     *world.MultilevelMap
 
-	viewport *render.Viewport
+	viewport *engine.Viewport
 
 	movePlayerDirection model.Direction
 	pauseGame           bool
@@ -51,7 +51,7 @@ func BeginPlayingState() *PlayingState {
 
 	s.entityMap.AddEntity(s.player, '@', tcell.StyleDefault)
 
-	s.viewport = render.CreateViewport(
+	s.viewport = engine.CreateViewport(
 		util.PositionAt(0, 0),
 		dungeonLevel.PlayerSpawnPoint(),
 		util.SizeOf(80, 24),
@@ -207,8 +207,8 @@ func (ps *PlayingState) OnTick(dt int64) GameState {
 	return ps
 }
 
-func (ps *PlayingState) CollectDrawables() []render.Drawable {
-	return render.Multidraw(render.CreateDrawingInstructions(func(v views.View) {
+func (ps *PlayingState) CollectDrawables() []engine.Drawable {
+	return engine.Multidraw(engine.CreateDrawingInstructions(func(v views.View) {
 		ps.viewport.DrawFromProvider(v, func(x, y int) (rune, tcell.Style) {
 			tile := ps.level.TileAt(x, y)
 

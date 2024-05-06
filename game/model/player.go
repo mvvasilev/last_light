@@ -11,7 +11,7 @@ type Player struct {
 	id       uuid.UUID
 	position util.Position
 
-	inventory *Inventory
+	inventory *EquippedInventory
 }
 
 func CreatePlayer(x, y int) *Player {
@@ -19,7 +19,7 @@ func CreatePlayer(x, y int) *Player {
 
 	p.id = uuid.New()
 	p.position = util.PositionAt(x, y)
-	p.inventory = CreateInventory(util.SizeOf(8, 4))
+	p.inventory = CreatePlayerInventory()
 
 	return p
 }
@@ -48,7 +48,7 @@ func (p *Player) Transparent() bool {
 	return false
 }
 
-func (p *Player) Inventory() *Inventory {
+func (p *Player) Inventory() *EquippedInventory {
 	return p.inventory
 }
 

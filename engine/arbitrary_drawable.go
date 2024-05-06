@@ -1,4 +1,4 @@
-package render
+package engine
 
 import (
 	"github.com/gdamore/tcell/v2/views"

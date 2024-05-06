@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/util"
 	"unicode/utf8"
 
@@ -12,14 +12,14 @@ import (
 
 type UILabel struct {
 	id   uuid.UUID
-	text *render.Text
+	text *engine.Text
 }
 
 func CreateUILabel(x, y int, width, height int, content string, style tcell.Style) *UILabel {
 	label := new(UILabel)
 
 	label.id = uuid.New()
-	label.text = render.CreateText(x, y, width, height, content, style)
+	label.text = engine.CreateText(x, y, width, height, content, style)
 
 	return label
 }
@@ -28,7 +28,7 @@ func CreateSingleLineUILabel(x, y int, content string, style tcell.Style) *UILab
 	label := new(UILabel)
 
 	label.id = uuid.New()
-	label.text = render.CreateText(x, y, int(utf8.RuneCountInString(content)), 1, content, style)
+	label.text = engine.CreateText(x, y, int(utf8.RuneCountInString(content)), 1, content, style)
 
 	return label
 }
@@ -38,7 +38,7 @@ func (t *UILabel) UniqueId() uuid.UUID {
 }
 
 func (t *UILabel) MoveTo(x int, y int) {
-	t.text = render.CreateText(x, y, int(t.text.Size().Width()), int(t.Size().Height()), t.text.Content(), t.text.Style())
+	t.text = engine.CreateText(x, y, int(t.text.Size().Width()), int(t.Size().Height()), t.text.Content(), t.text.Style())
 }
 
 func (t *UILabel) Position() util.Position {

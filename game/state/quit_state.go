@@ -1,7 +1,7 @@
 package state
 
 import (
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -17,6 +17,6 @@ func (q *QuitState) OnTick(dt int64) GameState {
 	return q
 }
 
-func (q *QuitState) CollectDrawables() []render.Drawable {
-	return render.Multidraw(nil)
+func (q *QuitState) CollectDrawables() []engine.Drawable {
+	return engine.Multidraw(nil)
 }

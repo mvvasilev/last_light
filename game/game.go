@@ -1,8 +1,8 @@
 package game
 
 import (
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/state"
-	"mvvasilev/last_light/render"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -46,6 +46,6 @@ func (g *Game) Tick(dt int64) bool {
 	return true
 }
 
-func (g *Game) CollectDrawables() []render.Drawable {
+func (g *Game) CollectDrawables() []engine.Drawable {
 	return g.state.CollectDrawables()
 }

@@ -1,15 +1,15 @@
 package state
 
 import (
-	"mvvasilev/last_light/render"
-	"mvvasilev/last_light/ui"
+	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/ui"
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type MainMenuState struct {
-	menuTitle          *render.Raw
+	menuTitle          *engine.Raw
 	buttons            []*ui.UISimpleButton
 	currButtonSelected int
 
@@ -22,7 +22,7 @@ func NewMainMenuState() *MainMenuState {
 
 	highlightStyle := tcell.StyleDefault.Attributes(tcell.AttrBold)
 
-	state.menuTitle = render.CreateRawDrawable(
+	state.menuTitle = engine.CreateRawDrawable(
 		11, 1, tcell.StyleDefault.Attributes(tcell.AttrBold).Foreground(tcell.ColorYellow),
 		" |                   |         |     _)         |      |  ",
 		" |       _` |   __|  __|       |      |   _` |  __ \\   __|",
@@ -77,8 +77,8 @@ func (mms *MainMenuState) OnTick(dt int64) GameState {
 	return mms
 }
 
-func (mms *MainMenuState) CollectDrawables() []render.Drawable {
-	arr := make([]render.Drawable, 0)
+func (mms *MainMenuState) CollectDrawables() []engine.Drawable {
+	arr := make([]engine.Drawable, 0)
 
 	arr = append(arr, mms.menuTitle)
 

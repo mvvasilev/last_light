@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
@@ -13,7 +13,7 @@ type UIElement interface {
 	Size() util.Size
 	Input(e *tcell.EventKey)
 
-	render.Drawable
+	engine.Drawable
 }
 
 type UIHighlightableElement interface {

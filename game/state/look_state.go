@@ -1,7 +1,7 @@
 package state
 
 import (
-	"mvvasilev/last_light/render"
+	"mvvasilev/last_light/engine"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -17,6 +17,6 @@ func (ls *LookState) OnTick(dt int64) GameState {
 	panic("not implemented") // TODO: Implement
 }
 
-func (ls *LookState) CollectDrawables() []render.Drawable {
+func (ls *LookState) CollectDrawables() []engine.Drawable {
 	panic("not implemented") // TODO: Implement
 }
