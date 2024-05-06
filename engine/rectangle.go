@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"mvvasilev/last_light/util"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
 	"github.com/google/uuid"
@@ -11,8 +9,8 @@ import (
 type Rectangle struct {
 	id uuid.UUID
 
-	size     util.Size
-	position util.Position
+	size     Size
+	position Position
 	style    tcell.Style
 
 	northBorder rune
@@ -103,8 +101,8 @@ func CreateRectangle(
 ) Rectangle {
 	return Rectangle{
 		id:           uuid.New(),
-		size:         util.SizeOf(width, height),
-		position:     util.PositionAt(x, y),
+		size:         SizeOf(width, height),
+		position:     PositionAt(x, y),
 		style:        style,
 		northBorder:  northBorder,
 		eastBorder:   eastBorder,
@@ -124,7 +122,7 @@ func (rect Rectangle) UniqueId() uuid.UUID {
 	return rect.id
 }
 
-func (rect Rectangle) Position() util.Position {
+func (rect Rectangle) Position() Position {
 	return rect.position
 }
 

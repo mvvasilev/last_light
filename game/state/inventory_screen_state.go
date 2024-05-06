@@ -2,9 +2,9 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
+	engine1 "mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
 	"mvvasilev/last_light/game/ui/menu"
-	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -14,7 +14,7 @@ type InventoryScreenState struct {
 	exitMenu  bool
 
 	inventoryMenu         *menu.PlayerInventoryMenu
-	selectedInventorySlot util.Position
+	selectedInventorySlot engine1.Position
 
 	player *model.Player
 
@@ -27,7 +27,7 @@ func CreateInventoryScreenState(player *model.Player, prevState PausableState) *
 
 	iss.prevState = prevState
 	iss.player = player
-	iss.selectedInventorySlot = util.PositionAt(0, 0)
+	iss.selectedInventorySlot = engine1.PositionAt(0, 0)
 	iss.exitMenu = false
 	iss.inventoryMenu = menu.CreatePlayerInventoryMenu(43, 0, player.Inventory(), tcell.StyleDefault, tcell.StyleDefault.Background(tcell.ColorDarkSlateGray))
 

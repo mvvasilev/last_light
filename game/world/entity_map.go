@@ -2,8 +2,8 @@ package world
 
 import (
 	"maps"
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
-	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
@@ -12,13 +12,13 @@ import (
 type EntityMap struct {
 	entities map[int]EntityTile
 
-	util.Sized
+	engine.Sized
 }
 
 func CreateEntityMap(width, height int) *EntityMap {
 	return &EntityMap{
 		entities: make(map[int]EntityTile, 0),
-		Sized:    util.WithSize(util.SizeOf(width, height)),
+		Sized:    engine.WithSize(engine.SizeOf(width, height)),
 	}
 }
 
@@ -55,11 +55,7 @@ func (em *EntityMap) AddEntity(entity model.MovableEntity, presentation rune, st
 
 func (em *EntityMap) DropEntity(uuid uuid.UUID) {
 	maps.DeleteFunc(em.entities, func(i int, et EntityTile) bool {
-		if et.Entity().UniqueId() == uuid {
-			return true
-		}
-
-		return false
+		return et.Entity().UniqueId() == uuid
 	})
 }
 

@@ -1,4 +1,4 @@
-package util
+package engine
 
 import "math/rand"
 
@@ -109,9 +109,4 @@ func LimitDecrement(i int, limit int) int {
 
 func RandInt(min, max int) int {
 	return min + rand.Intn(max-min)
-}
-
-type Room struct {
-	Positioned
-	Sized
 }

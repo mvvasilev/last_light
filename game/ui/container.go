@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"mvvasilev/last_light/util"
+	"mvvasilev/last_light/engine"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
@@ -28,8 +28,8 @@ const (
 type UIContainer struct {
 	id       uuid.UUID
 	layout   UIContainerLayout
-	position util.Position
-	size     util.Size
+	position engine.Position
+	size     engine.Size
 	elements []UIElement
 }
 
@@ -38,8 +38,8 @@ func CreateUIContainer(x, y int, width, height int, layout UIContainerLayout) *U
 
 	container.id = uuid.New()
 	container.layout = layout
-	container.position = util.PositionAt(x, y)
-	container.size = util.SizeOf(width, height)
+	container.position = engine.PositionAt(x, y)
+	container.size = engine.SizeOf(width, height)
 	container.elements = make([]UIElement, 0)
 
 	return container
@@ -58,14 +58,14 @@ func (uic *UIContainer) UniqueId() uuid.UUID {
 }
 
 func (uic *UIContainer) MoveTo(x, y int) {
-	uic.position = util.PositionAt(x, y)
+	uic.position = engine.PositionAt(x, y)
 }
 
-func (uic *UIContainer) Position() util.Position {
+func (uic *UIContainer) Position() engine.Position {
 	return uic.position
 }
 
-func (uic *UIContainer) Size() util.Size {
+func (uic *UIContainer) Size() engine.Size {
 	return uic.size
 }
 

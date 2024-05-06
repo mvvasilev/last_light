@@ -1,21 +1,21 @@
 package world
 
 import (
-	"mvvasilev/last_light/util"
+	"mvvasilev/last_light/engine"
 )
 
 type BSPDungeonMap struct {
 	level *BasicMap
 
-	playerSpawnPoint util.Position
-	rooms            []util.Room
+	playerSpawnPoint engine.Position
+	rooms            []engine.BoundingBox
 }
 
-func (bsp *BSPDungeonMap) PlayerSpawnPoint() util.Position {
+func (bsp *BSPDungeonMap) PlayerSpawnPoint() engine.Position {
 	return bsp.playerSpawnPoint
 }
 
-func (bsp *BSPDungeonMap) Size() util.Size {
+func (bsp *BSPDungeonMap) Size() engine.Size {
 	return bsp.level.Size()
 }
 
@@ -30,6 +30,6 @@ func (bsp *BSPDungeonMap) TileAt(x int, y int) Tile {
 func (bsp *BSPDungeonMap) Tick(dt int64) {
 }
 
-func (bsp *BSPDungeonMap) Rooms() []util.Room {
+func (bsp *BSPDungeonMap) Rooms() []engine.BoundingBox {
 	return bsp.rooms
 }

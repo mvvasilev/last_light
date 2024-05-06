@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"mvvasilev/last_light/util"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
 	"github.com/google/uuid"
@@ -10,15 +8,15 @@ import (
 
 type Viewport struct {
 	id             uuid.UUID
-	screenLocation util.Position
+	screenLocation Position
 
-	viewportCenter util.Position
-	viewportSize   util.Size
+	viewportCenter Position
+	viewportSize   Size
 
 	style tcell.Style
 }
 
-func CreateViewport(screenLoc, viewportCenter util.Position, size util.Size, style tcell.Style) *Viewport {
+func CreateViewport(screenLoc, viewportCenter Position, size Size, style tcell.Style) *Viewport {
 	v := new(Viewport)
 
 	v.id = uuid.New()
@@ -34,19 +32,19 @@ func (vp *Viewport) UniqueId() uuid.UUID {
 	return vp.id
 }
 
-func (vp *Viewport) Center() util.Position {
+func (vp *Viewport) Center() Position {
 	return vp.viewportCenter
 }
 
-func (vp *Viewport) SetCenter(pos util.Position) {
+func (vp *Viewport) SetCenter(pos Position) {
 	vp.viewportCenter = pos
 }
 
-func (vp *Viewport) Size() util.Size {
+func (vp *Viewport) Size() Size {
 	return vp.viewportSize
 }
 
-func (vp *Viewport) ScreenLocation() util.Position {
+func (vp *Viewport) ScreenLocation() Position {
 	return vp.screenLocation
 }
 

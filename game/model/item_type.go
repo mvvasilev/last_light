@@ -1,8 +1,6 @@
 package model
 
 import (
-	"math/rand"
-
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -104,16 +102,4 @@ func ItemTypeKey() *ItemType {
 		style:       tcell.StyleDefault.Foreground(tcell.ColorDarkGoldenrod),
 		maxStack:    1,
 	}
-}
-
-func GenerateItemType(genTable map[float32]*ItemType) *ItemType {
-	num := rand.Float32()
-
-	for k, v := range genTable {
-		if num > k {
-			return v
-		}
-	}
-
-	return nil
 }

@@ -1,6 +1,6 @@
 package world
 
-import "mvvasilev/last_light/util"
+import "mvvasilev/last_light/engine"
 
 type MultilevelMap struct {
 	layers []Map
@@ -14,9 +14,9 @@ func CreateMultilevelMap(maps ...Map) *MultilevelMap {
 	return m
 }
 
-func (mm *MultilevelMap) Size() util.Size {
+func (mm *MultilevelMap) Size() engine.Size {
 	if len(mm.layers) == 0 {
-		return util.SizeOf(0, 0)
+		return engine.SizeOf(0, 0)
 	}
 
 	return mm.layers[0].Size()

@@ -1,12 +1,12 @@
 package world
 
-import "mvvasilev/last_light/util"
+import "mvvasilev/last_light/engine"
 
 type EmptyDungeonMap struct {
 	level *BasicMap
 }
 
-func (edl *EmptyDungeonMap) Size() util.Size {
+func (edl *EmptyDungeonMap) Size() engine.Size {
 	return edl.level.Size()
 }
 

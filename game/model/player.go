@@ -1,7 +1,7 @@
 package model
 
 import (
-	"mvvasilev/last_light/util"
+	"mvvasilev/last_light/engine"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
@@ -9,7 +9,7 @@ import (
 
 type Player struct {
 	id       uuid.UUID
-	position util.Position
+	position engine.Position
 
 	inventory *EquippedInventory
 }
@@ -18,7 +18,7 @@ func CreatePlayer(x, y int) *Player {
 	p := new(Player)
 
 	p.id = uuid.New()
-	p.position = util.PositionAt(x, y)
+	p.position = engine.PositionAt(x, y)
 	p.inventory = CreatePlayerInventory()
 
 	return p
@@ -28,11 +28,11 @@ func (p *Player) UniqueId() uuid.UUID {
 	return p.id
 }
 
-func (p *Player) Position() util.Position {
+func (p *Player) Position() engine.Position {
 	return p.position
 }
 
-func (p *Player) MoveTo(newPos util.Position) {
+func (p *Player) MoveTo(newPos engine.Position) {
 	p.position = newPos
 }
 

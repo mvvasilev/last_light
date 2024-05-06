@@ -1,6 +1,6 @@
 package model
 
-import "mvvasilev/last_light/util"
+import "mvvasilev/last_light/engine"
 
 type EquippedSlot int
 
@@ -27,7 +27,7 @@ type EquippedInventory struct {
 
 func CreatePlayerInventory() *EquippedInventory {
 	return &EquippedInventory{
-		BasicInventory: CreateInventory(util.SizeOf(8, 4)),
+		BasicInventory: CreateInventory(engine.SizeOf(8, 4)),
 	}
 }
 

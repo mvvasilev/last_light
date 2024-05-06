@@ -1,8 +1,8 @@
 package world
 
 import (
+	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
-	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -98,27 +98,27 @@ func TileTypeOpenDoor() TileType {
 }
 
 type Tile interface {
-	Position() util.Position
+	Position() engine.Position
 	Presentation() (rune, tcell.Style)
 	Passable() bool
 	Transparent() bool
 }
 
 type StaticTile struct {
-	position util.Position
+	position engine.Position
 	t        TileType
 }
 
 func CreateStaticTile(x, y int, t TileType) Tile {
 	st := new(StaticTile)
 
-	st.position = util.PositionAt(x, y)
+	st.position = engine.PositionAt(x, y)
 	st.t = t
 
 	return st
 }
 
-func (st *StaticTile) Position() util.Position {
+func (st *StaticTile) Position() engine.Position {
 	return st.position
 }
 
@@ -139,12 +139,12 @@ func (st *StaticTile) Type() TileType {
 }
 
 type ItemTile struct {
-	position util.Position
+	position engine.Position
 	itemType *model.ItemType
 	quantity int
 }
 
-func CreateItemTile(position util.Position, itemType *model.ItemType, quantity int) *ItemTile {
+func CreateItemTile(position engine.Position, itemType *model.ItemType, quantity int) *ItemTile {
 	it := new(ItemTile)
 
 	it.position = position
@@ -162,7 +162,7 @@ func (it *ItemTile) Quantity() int {
 	return it.quantity
 }
 
-func (it *ItemTile) Position() util.Position {
+func (it *ItemTile) Position() engine.Position {
 	return it.position
 }
 
@@ -202,7 +202,7 @@ func (bet *BasicEntityTile) Entity() model.MovableEntity {
 	return bet.entity
 }
 
-func (bet *BasicEntityTile) Position() util.Position {
+func (bet *BasicEntityTile) Position() engine.Position {
 	return bet.entity.Position()
 }
 

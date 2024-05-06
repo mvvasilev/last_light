@@ -2,7 +2,7 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/util"
+	engine1 "mvvasilev/last_light/engine"
 	"strings"
 	"unicode/utf8"
 
@@ -85,11 +85,11 @@ func (sb *UISimpleButton) MoveTo(x int, y int) {
 	sb.text = engine.CreateText(x, y, int(utf8.RuneCountInString(sb.text.Content())), 1, sb.text.Content(), sb.highlightedStyle)
 }
 
-func (sb *UISimpleButton) Position() util.Position {
+func (sb *UISimpleButton) Position() engine1.Position {
 	return sb.text.Position()
 }
 
-func (sb *UISimpleButton) Size() util.Size {
+func (sb *UISimpleButton) Size() engine1.Size {
 	return sb.text.Size()
 }
 

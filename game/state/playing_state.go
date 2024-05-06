@@ -1,11 +1,10 @@
 package state
 
 import (
-	"math/rand"
 	"mvvasilev/last_light/engine"
+	engine1 "mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
 	"mvvasilev/last_light/game/world"
-	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
@@ -27,11 +26,18 @@ type PlayingState struct {
 func BeginPlayingState() *PlayingState {
 	s := new(PlayingState)
 
-	mapSize := util.SizeOf(128, 128)
+	mapSize := engine1.SizeOf(128, 128)
 
 	dungeonLevel := world.CreateBSPDungeonMap(mapSize.Width(), mapSize.Height(), 4)
 
-	itemTiles := spawnItems(dungeonLevel)
+	genTable := make(map[float32]*model.ItemType, 0)
+
+	genTable[0.2] = model.ItemTypeFish()
+	genTable[0.05] = model.ItemTypeBow()
+	genTable[0.051] = model.ItemTypeLongsword()
+	genTable[0.052] = model.ItemTypeKey()
+
+	itemTiles := world.SpawnItems(dungeonLevel.Rooms(), 0.025, genTable)
 
 	itemLevel := world.CreateEmptyDungeonLevel(mapSize.Width(), mapSize.Height())
 
@@ -52,55 +58,13 @@ func BeginPlayingState() *PlayingState {
 	s.entityMap.AddEntity(s.player, '@', tcell.StyleDefault)
 
 	s.viewport = engine.CreateViewport(
-		util.PositionAt(0, 0),
+		engine1.PositionAt(0, 0),
 		dungeonLevel.PlayerSpawnPoint(),
-		util.SizeOf(80, 24),
+		engine1.SizeOf(80, 24),
 		tcell.StyleDefault,
 	)
 
 	return s
-}
-
-func spawnItems(level *world.BSPDungeonMap) []world.Tile {
-	rooms := level.Rooms()
-
-	genTable := make(map[float32]*model.ItemType)
-
-	genTable[0.2] = model.ItemTypeFish()
-	genTable[0.05] = model.ItemTypeBow()
-	genTable[0.051] = model.ItemTypeLongsword()
-	genTable[0.052] = model.ItemTypeKey()
-
-	itemTiles := make([]world.Tile, 0, 10)
-
-	for _, r := range rooms {
-		maxItems := int(0.10 * float64(r.Size().Area()))
-
-		if maxItems < 1 {
-			continue
-		}
-
-		numItems := rand.Intn(maxItems)
-
-		for range numItems {
-			itemType := model.GenerateItemType(genTable)
-
-			if itemType == nil {
-				continue
-			}
-
-			pos := util.PositionAt(
-				util.RandInt(r.Position().X()+1, r.Position().X()+r.Size().Width()-1),
-				util.RandInt(r.Position().Y()+1, r.Position().Y()+r.Size().Height()-1),
-			)
-
-			itemTiles = append(itemTiles, world.CreateItemTile(
-				pos, itemType, 1,
-			))
-		}
-	}
-
-	return itemTiles
 }
 
 func (ps *PlayingState) Pause() {

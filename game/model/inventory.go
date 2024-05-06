@@ -1,10 +1,10 @@
 package model
 
-import "mvvasilev/last_light/util"
+import "mvvasilev/last_light/engine"
 
 type Inventory interface {
 	Items() []*Item
-	Shape() util.Size
+	Shape() engine.Size
 	Push(item Item) bool
 	Drop(x, y int) *Item
 	ItemAt(x, y int) *Item
@@ -12,10 +12,10 @@ type Inventory interface {
 
 type BasicInventory struct {
 	contents []*Item
-	shape    util.Size
+	shape    engine.Size
 }
 
-func CreateInventory(shape util.Size) *BasicInventory {
+func CreateInventory(shape engine.Size) *BasicInventory {
 	inv := new(BasicInventory)
 
 	inv.contents = make([]*Item, 0, shape.Height()*shape.Width())
@@ -28,7 +28,7 @@ func (i *BasicInventory) Items() (items []*Item) {
 	return i.contents
 }
 
-func (i *BasicInventory) Shape() util.Size {
+func (i *BasicInventory) Shape() engine.Size {
 	return i.shape
 }
 

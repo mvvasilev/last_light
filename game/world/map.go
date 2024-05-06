@@ -1,23 +1,23 @@
 package world
 
 import (
-	"mvvasilev/last_light/util"
+	"mvvasilev/last_light/engine"
 )
 
 type Map interface {
-	Size() util.Size
+	Size() engine.Size
 	SetTileAt(x, y int, t Tile)
 	TileAt(x, y int) Tile
 	Tick(dt int64)
 }
 
 type WithPlayerSpawnPoint interface {
-	PlayerSpawnPoint() util.Position
+	PlayerSpawnPoint() engine.Position
 	Map
 }
 
 type WithRooms interface {
-	Rooms() []util.Room
+	Rooms() []engine.BoundingBox
 	Map
 }
 
@@ -36,8 +36,8 @@ func CreateBasicMap(tiles [][]Tile) *BasicMap {
 func (bm *BasicMap) Tick() {
 }
 
-func (bm *BasicMap) Size() util.Size {
-	return util.SizeOf(len(bm.tiles[0]), len(bm.tiles))
+func (bm *BasicMap) Size() engine.Size {
+	return engine.SizeOf(len(bm.tiles[0]), len(bm.tiles))
 }
 
 func (bm *BasicMap) SetTileAt(x int, y int, t Tile) {

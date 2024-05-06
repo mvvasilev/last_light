@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"mvvasilev/last_light/util"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
 	"github.com/google/uuid"
@@ -11,14 +9,14 @@ import (
 type Raw struct {
 	id       uuid.UUID
 	buffer   [][]rune
-	position util.Position
+	position Position
 	style    tcell.Style
 }
 
 func CreateRawDrawable(x, y int, style tcell.Style, buffer ...string) *Raw {
 	r := new(Raw)
 
-	r.position = util.PositionAt(x, y)
+	r.position = PositionAt(x, y)
 	r.buffer = make([][]rune, 0)
 
 	for _, row := range buffer {
@@ -33,7 +31,7 @@ func CreateRawDrawable(x, y int, style tcell.Style, buffer ...string) *Raw {
 func CreateRawDrawableFromBuffer(x, y int, style tcell.Style, buffer [][]rune) *Raw {
 	r := new(Raw)
 
-	r.position = util.PositionAt(x, y)
+	r.position = PositionAt(x, y)
 	r.buffer = buffer
 
 	return r

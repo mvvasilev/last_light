@@ -1,7 +1,7 @@
 package model
 
 import (
-	"mvvasilev/last_light/util"
+	"mvvasilev/last_light/engine"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
@@ -39,8 +39,8 @@ type Entity interface {
 }
 
 type MovableEntity interface {
-	Position() util.Position
-	MoveTo(newPosition util.Position)
+	Position() engine.Position
+	MoveTo(newPosition engine.Position)
 
 	Entity
 }

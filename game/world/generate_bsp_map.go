@@ -2,7 +2,7 @@ package world
 
 import (
 	"math/rand"
-	"mvvasilev/last_light/util"
+	"mvvasilev/last_light/engine"
 )
 
 type splitDirection bool
@@ -13,10 +13,10 @@ const (
 )
 
 type bspNode struct {
-	origin util.Position
-	size   util.Size
+	origin engine.Position
+	size   engine.Size
 
-	room    util.Room
+	room    engine.BoundingBox
 	hasRoom bool
 
 	left  *bspNode
@@ -28,8 +28,8 @@ type bspNode struct {
 func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 	root := new(bspNode)
 
-	root.origin = util.PositionAt(0, 0)
-	root.size = util.SizeOf(width, height)
+	root.origin = engine.PositionAt(0, 0)
+	root.size = engine.SizeOf(width, height)
 
 	split(root, numSplits)
 
@@ -39,13 +39,13 @@ func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 		tiles[h] = make([]Tile, width)
 	}
 
-	rooms := make([]util.Room, 0, 2^numSplits)
+	rooms := make([]engine.BoundingBox, 0, 2^numSplits)
 
 	iterateBspLeaves(root, func(leaf *bspNode) {
-		x := util.RandInt(leaf.origin.X(), leaf.origin.X()+leaf.size.Width()/4)
-		y := util.RandInt(leaf.origin.Y(), leaf.origin.Y()+leaf.size.Height()/4)
-		w := util.RandInt(3, leaf.size.Width()-1)
-		h := util.RandInt(3, leaf.size.Height()-1)
+		x := engine.RandInt(leaf.origin.X(), leaf.origin.X()+leaf.size.Width()/4)
+		y := engine.RandInt(leaf.origin.Y(), leaf.origin.Y()+leaf.size.Height()/4)
+		w := engine.RandInt(3, leaf.size.Width()-1)
+		h := engine.RandInt(3, leaf.size.Height()-1)
 
 		if x+w >= width {
 			w = w - (x + w - width) - 1
@@ -55,9 +55,9 @@ func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 			h = h - (y + h - height) - 1
 		}
 
-		room := util.Room{
-			Positioned: util.WithPosition(util.PositionAt(x, y)),
-			Sized:      util.WithSize(util.SizeOf(w, h)),
+		room := engine.BoundingBox{
+			Positioned: engine.WithPosition(engine.PositionAt(x, y)),
+			Sized:      engine.WithSize(engine.SizeOf(w, h)),
 		}
 
 		rooms = append(rooms, room)
@@ -74,11 +74,11 @@ func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 
 		zCorridor(
 			tiles,
-			util.PositionAt(
+			engine.PositionAt(
 				roomLeft.Position().X()+roomLeft.Size().Width()/2,
 				roomLeft.Position().Y()+roomLeft.Size().Height()/2,
 			),
-			util.PositionAt(
+			engine.PositionAt(
 				roomRight.Position().X()+roomRight.Size().Width()/2,
 				roomRight.Position().Y()+roomRight.Size().Height()/2,
 			),
@@ -92,7 +92,7 @@ func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 
 	bsp.rooms = rooms
 	bsp.level = CreateBasicMap(tiles)
-	bsp.playerSpawnPoint = util.PositionAt(
+	bsp.playerSpawnPoint = engine.PositionAt(
 		spawnRoom.Position().X()+spawnRoom.Size().Width()/2,
 		spawnRoom.Position().Y()+spawnRoom.Size().Height()/2,
 	)
@@ -100,7 +100,7 @@ func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 	return bsp
 }
 
-func findRoom(parent *bspNode) util.Room {
+func findRoom(parent *bspNode) engine.BoundingBox {
 	if parent.hasRoom {
 		return parent.room
 	}
@@ -112,7 +112,7 @@ func findRoom(parent *bspNode) util.Room {
 	}
 }
 
-func zCorridor(tiles [][]Tile, from util.Position, to util.Position, direction splitDirection) {
+func zCorridor(tiles [][]Tile, from engine.Position, to engine.Position, direction splitDirection) {
 	switch direction {
 	case splitDirectionHorizontal:
 		xMidPoint := (from.X() + to.X()) / 2
@@ -164,30 +164,30 @@ func split(parent *bspNode, numSplits int) {
 	// split vertically
 	if parent.size.Width() > parent.size.Height() {
 		// New splits will be between 45% and 65% of the parent's width
-		leftSplitWidth := util.RandInt(int(float32(parent.size.Width())*0.45), int(float32(parent.size.Width())*0.65))
+		leftSplitWidth := engine.RandInt(int(float32(parent.size.Width())*0.45), int(float32(parent.size.Width())*0.65))
 
 		parent.splitDir = splitDirectionVertical
 
 		parent.left = new(bspNode)
 		parent.left.origin = parent.origin
-		parent.left.size = util.SizeOf(leftSplitWidth, parent.size.Height())
+		parent.left.size = engine.SizeOf(leftSplitWidth, parent.size.Height())
 
 		parent.right = new(bspNode)
 		parent.right.origin = parent.origin.WithOffset(leftSplitWidth, 0)
-		parent.right.size = util.SizeOf(parent.size.Width()-leftSplitWidth, parent.size.Height())
+		parent.right.size = engine.SizeOf(parent.size.Width()-leftSplitWidth, parent.size.Height())
 	} else { // split horizontally
 		// New splits will be between 45% and 65% of the parent's height
-		leftSplitHeight := util.RandInt(int(float32(parent.size.Height())*0.45), int(float32(parent.size.Height())*0.65))
+		leftSplitHeight := engine.RandInt(int(float32(parent.size.Height())*0.45), int(float32(parent.size.Height())*0.65))
 
 		parent.splitDir = splitDirectionHorizontal
 
 		parent.left = new(bspNode)
 		parent.left.origin = parent.origin
-		parent.left.size = util.SizeOf(parent.size.Width(), leftSplitHeight)
+		parent.left.size = engine.SizeOf(parent.size.Width(), leftSplitHeight)
 
 		parent.right = new(bspNode)
 		parent.right.origin = parent.origin.WithOffset(0, leftSplitHeight)
-		parent.right.size = util.SizeOf(parent.size.Width(), parent.size.Height()-leftSplitHeight)
+		parent.right.size = engine.SizeOf(parent.size.Width(), parent.size.Height()-leftSplitHeight)
 	}
 
 	split(parent.left, numSplits-1)
@@ -256,7 +256,7 @@ func placeWallAtIfNotPassable(tiles [][]Tile, x, y int) {
 	tiles[y][x] = CreateStaticTile(x, y, TileTypeWall())
 }
 
-func makeRoom(tiles [][]Tile, room util.Room) {
+func makeRoom(tiles [][]Tile, room engine.BoundingBox) {
 	width := room.Size().Width()
 	height := room.Size().Height()
 	x := room.Position().X()

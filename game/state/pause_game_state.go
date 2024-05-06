@@ -2,8 +2,8 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
+	engine1 "mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/ui"
-	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -68,13 +68,13 @@ func (pg *PauseGameState) OnInput(e *tcell.EventKey) {
 
 	if e.Key() == tcell.KeyDown {
 		pg.buttons[pg.currButtonSelected].Unhighlight()
-		pg.currButtonSelected = util.LimitIncrement(pg.currButtonSelected, 1)
+		pg.currButtonSelected = engine1.LimitIncrement(pg.currButtonSelected, 1)
 		pg.buttons[pg.currButtonSelected].Highlight()
 	}
 
 	if e.Key() == tcell.KeyUp {
 		pg.buttons[pg.currButtonSelected].Unhighlight()
-		pg.currButtonSelected = util.LimitDecrement(pg.currButtonSelected, 0)
+		pg.currButtonSelected = engine1.LimitDecrement(pg.currButtonSelected, 0)
 		pg.buttons[pg.currButtonSelected].Highlight()
 	}
 

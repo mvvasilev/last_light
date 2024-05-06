@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"mvvasilev/last_light/util"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
 	"github.com/google/uuid"
@@ -11,10 +9,10 @@ import (
 type Grid struct {
 	id uuid.UUID
 
-	internalCellSize   util.Size
+	internalCellSize   Size
 	numCellsHorizontal int
 	numCellsVertical   int
-	position           util.Position
+	position           Position
 	style              tcell.Style
 	highlightStyle     tcell.Style
 
@@ -38,7 +36,7 @@ type Grid struct {
 	crossJunction              rune
 
 	isHighlighted   bool
-	highlightedGrid util.Position
+	highlightedGrid Position
 
 	fillRune rune
 }
@@ -79,11 +77,11 @@ func CreateGrid(
 ) *Grid {
 	return &Grid{
 		id:                         uuid.New(),
-		internalCellSize:           util.SizeOf(cellWidth, cellHeight),
+		internalCellSize:           SizeOf(cellWidth, cellHeight),
 		numCellsHorizontal:         numCellsHorizontal,
 		numCellsVertical:           numCellsVertical,
 		isHighlighted:              false,
-		position:                   util.PositionAt(x, y),
+		position:                   PositionAt(x, y),
 		style:                      style,
 		highlightStyle:             highlightStyle,
 		northBorder:                northBorder,
@@ -110,7 +108,7 @@ func (g *Grid) UniqueId() uuid.UUID {
 	return g.id
 }
 
-func (g *Grid) Highlight(highlightedGrid util.Position) {
+func (g *Grid) Highlight(highlightedGrid Position) {
 	g.isHighlighted = true
 	g.highlightedGrid = highlightedGrid
 }
@@ -119,7 +117,7 @@ func (g *Grid) Unhighlight() {
 	g.isHighlighted = false
 }
 
-func (g *Grid) Position() util.Position {
+func (g *Grid) Position() Position {
 	return g.position
 }
 

@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"mvvasilev/last_light/util"
 	"strings"
 	"unicode/utf8"
 
@@ -13,8 +12,8 @@ import (
 type Text struct {
 	id       uuid.UUID
 	content  []string
-	position util.Position
-	size     util.Size
+	position Position
+	size     Size
 	style    tcell.Style
 }
 
@@ -29,8 +28,8 @@ func CreateText(
 	text.id = uuid.New()
 	text.content = strings.Split(content, " ")
 	text.style = style
-	text.size = util.SizeOf(width, height)
-	text.position = util.PositionAt(x, y)
+	text.size = SizeOf(width, height)
+	text.position = PositionAt(x, y)
 
 	return text
 }
@@ -39,7 +38,7 @@ func (t *Text) UniqueId() uuid.UUID {
 	return t.id
 }
 
-func (t *Text) Position() util.Position {
+func (t *Text) Position() Position {
 	return t.position
 }
 
@@ -47,7 +46,7 @@ func (t *Text) Content() string {
 	return strings.Join(t.content, " ")
 }
 
-func (t *Text) Size() util.Size {
+func (t *Text) Size() Size {
 	return t.size
 }
 
