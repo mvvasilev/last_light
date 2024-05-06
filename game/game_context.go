@@ -31,22 +31,27 @@ func CreateGameContext() *GameContext {
 }
 
 func (gc *GameContext) Run() {
+	lastLoop := time.Now()
 	lastTick := time.Now()
 
 	for {
-		deltaTime := 1 + time.Since(lastTick).Microseconds()
-		lastTick = time.Now()
+		deltaTime := 1 + time.Since(lastLoop).Microseconds()
+		lastLoop = time.Now()
 
 		for _, e := range gc.renderContext.CollectInputEvents() {
 			gc.game.Input(e)
 		}
 
-		stop := !gc.game.Tick(deltaTime)
+		if time.Since(lastTick).Milliseconds() >= TICK_RATE {
+			stop := !gc.game.Tick(deltaTime)
 
-		if stop {
-			gc.renderContext.Stop()
-			os.Exit(0)
-			break
+			if stop {
+				gc.renderContext.Stop()
+				os.Exit(0)
+				break
+			}
+
+			lastTick = time.Now()
 		}
 
 		drawables := gc.game.CollectDrawables()

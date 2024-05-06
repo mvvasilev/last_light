@@ -40,5 +40,7 @@ type Entity interface {
 
 type MovableEntity interface {
 	Position() util.Position
-	Move(dir Direction)
+	MoveTo(newPosition util.Position)
+
+	Entity
 }

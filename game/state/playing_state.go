@@ -3,6 +3,7 @@ package state
 import (
 	"math/rand"
 	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/world"
 	"mvvasilev/last_light/render"
 	"mvvasilev/last_light/util"
 
@@ -11,8 +12,9 @@ import (
 )
 
 type PlayingState struct {
-	player *model.Player
-	level  *model.MultilevelMap
+	player    *model.Player
+	entityMap *world.EntityMap
+	level     *world.MultilevelMap
 
 	viewport *render.Viewport
 
@@ -27,11 +29,11 @@ func BeginPlayingState() *PlayingState {
 
 	mapSize := util.SizeOf(128, 128)
 
-	dungeonLevel := model.CreateBSPDungeonLevel(mapSize.Width(), mapSize.Height(), 4)
+	dungeonLevel := world.CreateBSPDungeonMap(mapSize.Width(), mapSize.Height(), 4)
 
 	itemTiles := spawnItems(dungeonLevel)
 
-	itemLevel := model.CreateEmptyDungeonLevel(mapSize.Width(), mapSize.Height())
+	itemLevel := world.CreateEmptyDungeonLevel(mapSize.Width(), mapSize.Height())
 
 	for _, it := range itemTiles {
 		itemLevel.SetTileAt(it.Position().X(), it.Position().Y(), it)
@@ -39,13 +41,15 @@ func BeginPlayingState() *PlayingState {
 
 	s.player = model.CreatePlayer(dungeonLevel.PlayerSpawnPoint().XY())
 
-	s.level = model.CreateMultilevelMap(
+	s.entityMap = world.CreateEntityMap(mapSize.WH())
+
+	s.level = world.CreateMultilevelMap(
 		dungeonLevel,
 		itemLevel,
-		model.CreateEmptyDungeonLevel(mapSize.WH()),
+		s.entityMap,
 	)
 
-	s.level.SetTileAtHeight(dungeonLevel.PlayerSpawnPoint().X(), dungeonLevel.PlayerSpawnPoint().Y(), 2, s.player)
+	s.entityMap.AddEntity(s.player, '@', tcell.StyleDefault)
 
 	s.viewport = render.CreateViewport(
 		util.PositionAt(0, 0),
@@ -57,7 +61,7 @@ func BeginPlayingState() *PlayingState {
 	return s
 }
 
-func spawnItems(level *model.BSPDungeonLevel) []model.Tile {
+func spawnItems(level *world.BSPDungeonMap) []world.Tile {
 	rooms := level.Rooms()
 
 	genTable := make(map[float32]*model.ItemType)
@@ -67,7 +71,7 @@ func spawnItems(level *model.BSPDungeonLevel) []model.Tile {
 	genTable[0.051] = model.ItemTypeLongsword()
 	genTable[0.052] = model.ItemTypeKey()
 
-	itemTiles := make([]model.Tile, 0, 10)
+	itemTiles := make([]world.Tile, 0, 10)
 
 	for _, r := range rooms {
 		maxItems := int(0.10 * float64(r.Size().Area()))
@@ -90,7 +94,7 @@ func spawnItems(level *model.BSPDungeonLevel) []model.Tile {
 				util.RandInt(r.Position().Y()+1, r.Position().Y()+r.Size().Height()-1),
 			)
 
-			itemTiles = append(itemTiles, model.CreateItemTile(
+			itemTiles = append(itemTiles, world.CreateItemTile(
 				pos, itemType, 1,
 			))
 		}
@@ -117,14 +121,12 @@ func (ps *PlayingState) MovePlayer() {
 	}
 
 	newPlayerPos := ps.player.Position().WithOffset(model.MovementDirectionOffset(ps.movePlayerDirection))
-
 	tileAtMovePos := ps.level.TileAt(newPlayerPos.XY())
 
 	if tileAtMovePos.Passable() {
-		ps.level.SetTileAtHeight(ps.player.Position().X(), ps.player.Position().Y(), 2, nil)
-		ps.player.Move(ps.movePlayerDirection)
+		dx, dy := model.MovementDirectionOffset(ps.movePlayerDirection)
+		ps.entityMap.MoveEntity(ps.player.UniqueId(), dx, dy)
 		ps.viewport.SetCenter(ps.player.Position())
-		ps.level.SetTileAtHeight(ps.player.Position().X(), ps.player.Position().Y(), 2, ps.player)
 	}
 
 	ps.movePlayerDirection = model.DirectionNone
@@ -134,7 +136,7 @@ func (ps *PlayingState) PickUpItemUnderPlayer() {
 	pos := ps.player.Position()
 	tile := ps.level.TileAtHeight(pos.X(), pos.Y(), 1)
 
-	itemTile, ok := tile.(*model.ItemTile)
+	itemTile, ok := tile.(*world.ItemTile)
 
 	if !ok {
 		return
@@ -178,17 +180,6 @@ func (ps *PlayingState) OnInput(e *tcell.EventKey) {
 		ps.movePlayerDirection = model.DirectionLeft
 	case tcell.KeyRight:
 		ps.movePlayerDirection = model.DirectionRight
-	case tcell.KeyRune:
-		switch e.Rune() {
-		case 'w':
-			ps.movePlayerDirection = model.DirectionUp
-		case 'a':
-			ps.movePlayerDirection = model.DirectionLeft
-		case 's':
-			ps.movePlayerDirection = model.DirectionDown
-		case 'd':
-			ps.movePlayerDirection = model.DirectionRight
-		}
 	}
 }
 

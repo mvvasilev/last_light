@@ -1,4 +1,4 @@
-package model
+package world
 
 import (
 	"mvvasilev/last_light/util"
@@ -8,7 +8,17 @@ type Map interface {
 	Size() util.Size
 	SetTileAt(x, y int, t Tile)
 	TileAt(x, y int) Tile
-	Tick()
+	Tick(dt int64)
+}
+
+type WithPlayerSpawnPoint interface {
+	PlayerSpawnPoint() util.Position
+	Map
+}
+
+type WithRooms interface {
+	Rooms() []util.Room
+	Map
 }
 
 type BasicMap struct {

@@ -1,6 +1,7 @@
-package model
+package world
 
 import (
+	"mvvasilev/last_light/game/model"
 	"mvvasilev/last_light/util"
 
 	"github.com/gdamore/tcell/v2"
@@ -14,6 +15,8 @@ const (
 	MaterialWall
 	MaterialGrass
 	MaterialVoid
+	MaterialClosedDoor
+	MaterialOpenDoor
 )
 
 type TileType struct {
@@ -74,6 +77,26 @@ func TileTypeWall() TileType {
 	}
 }
 
+func TileTypeClosedDoor() TileType {
+	return TileType{
+		Material:     MaterialClosedDoor,
+		Passable:     false,
+		Transparent:  false,
+		Presentation: '[',
+		Style:        tcell.StyleDefault.Foreground(tcell.ColorLightSteelBlue).Background(tcell.ColorSaddleBrown),
+	}
+}
+
+func TileTypeOpenDoor() TileType {
+	return TileType{
+		Material:     MaterialClosedDoor,
+		Passable:     false,
+		Transparent:  false,
+		Presentation: '_',
+		Style:        tcell.StyleDefault.Foreground(tcell.ColorLightSteelBlue),
+	}
+}
+
 type Tile interface {
 	Position() util.Position
 	Presentation() (rune, tcell.Style)
@@ -117,11 +140,11 @@ func (st *StaticTile) Type() TileType {
 
 type ItemTile struct {
 	position util.Position
-	itemType *ItemType
+	itemType *model.ItemType
 	quantity int
 }
 
-func CreateItemTile(position util.Position, itemType *ItemType, quantity int) *ItemTile {
+func CreateItemTile(position util.Position, itemType *model.ItemType, quantity int) *ItemTile {
 	it := new(ItemTile)
 
 	it.position = position
@@ -131,7 +154,7 @@ func CreateItemTile(position util.Position, itemType *ItemType, quantity int) *I
 	return it
 }
 
-func (it *ItemTile) Type() *ItemType {
+func (it *ItemTile) Type() *model.ItemType {
 	return it.itemType
 }
 
@@ -144,7 +167,7 @@ func (it *ItemTile) Position() util.Position {
 }
 
 func (it *ItemTile) Presentation() (rune, tcell.Style) {
-	return it.itemType.tileIcon, it.itemType.style
+	return it.itemType.TileIcon(), it.itemType.Style()
 }
 
 func (it *ItemTile) Passable() bool {
@@ -152,5 +175,45 @@ func (it *ItemTile) Passable() bool {
 }
 
 func (it *ItemTile) Transparent() bool {
+	return false
+}
+
+type EntityTile interface {
+	Entity() model.MovableEntity
+	Tile
+}
+
+type BasicEntityTile struct {
+	entity model.MovableEntity
+
+	presentation rune
+	style        tcell.Style
+}
+
+func CreateBasicEntityTile(entity model.MovableEntity, presentation rune, style tcell.Style) *BasicEntityTile {
+	return &BasicEntityTile{
+		entity:       entity,
+		presentation: presentation,
+		style:        style,
+	}
+}
+
+func (bet *BasicEntityTile) Entity() model.MovableEntity {
+	return bet.entity
+}
+
+func (bet *BasicEntityTile) Position() util.Position {
+	return bet.entity.Position()
+}
+
+func (bet *BasicEntityTile) Presentation() (rune, tcell.Style) {
+	return bet.presentation, bet.style
+}
+
+func (bet *BasicEntityTile) Passable() bool {
+	return false
+}
+
+func (bet *BasicEntityTile) Transparent() bool {
 	return false
 }

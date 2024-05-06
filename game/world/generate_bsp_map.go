@@ -1,4 +1,4 @@
-package model
+package world
 
 import (
 	"math/rand"
@@ -16,7 +16,7 @@ type bspNode struct {
 	origin util.Position
 	size   util.Size
 
-	room    Room
+	room    util.Room
 	hasRoom bool
 
 	left  *bspNode
@@ -25,27 +25,7 @@ type bspNode struct {
 	splitDir splitDirection
 }
 
-type Room struct {
-	position util.Position
-	size     util.Size
-}
-
-func (r Room) Size() util.Size {
-	return r.size
-}
-
-func (r Room) Position() util.Position {
-	return r.position
-}
-
-type BSPDungeonLevel struct {
-	level *BasicMap
-
-	playerSpawnPoint util.Position
-	rooms            []Room
-}
-
-func CreateBSPDungeonLevel(width, height int, numSplits int) *BSPDungeonLevel {
+func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 	root := new(bspNode)
 
 	root.origin = util.PositionAt(0, 0)
@@ -59,7 +39,7 @@ func CreateBSPDungeonLevel(width, height int, numSplits int) *BSPDungeonLevel {
 		tiles[h] = make([]Tile, width)
 	}
 
-	rooms := make([]Room, 0, 2^numSplits)
+	rooms := make([]util.Room, 0, 2^numSplits)
 
 	iterateBspLeaves(root, func(leaf *bspNode) {
 		x := util.RandInt(leaf.origin.X(), leaf.origin.X()+leaf.size.Width()/4)
@@ -75,9 +55,9 @@ func CreateBSPDungeonLevel(width, height int, numSplits int) *BSPDungeonLevel {
 			h = h - (y + h - height) - 1
 		}
 
-		room := Room{
-			position: util.PositionAt(x, y),
-			size:     util.SizeOf(w, h),
+		room := util.Room{
+			Positioned: util.WithPosition(util.PositionAt(x, y)),
+			Sized:      util.WithSize(util.SizeOf(w, h)),
 		}
 
 		rooms = append(rooms, room)
@@ -95,36 +75,32 @@ func CreateBSPDungeonLevel(width, height int, numSplits int) *BSPDungeonLevel {
 		zCorridor(
 			tiles,
 			util.PositionAt(
-				roomLeft.position.X()+roomLeft.size.Width()/2,
-				roomLeft.position.Y()+roomLeft.size.Height()/2,
+				roomLeft.Position().X()+roomLeft.Size().Width()/2,
+				roomLeft.Position().Y()+roomLeft.Size().Height()/2,
 			),
 			util.PositionAt(
-				roomRight.position.X()+roomRight.size.Width()/2,
-				roomRight.position.Y()+roomRight.size.Height()/2,
+				roomRight.Position().X()+roomRight.Size().Width()/2,
+				roomRight.Position().Y()+roomRight.Size().Height()/2,
 			),
 			parent.splitDir,
 		)
 	})
 
-	bsp := new(BSPDungeonLevel)
+	bsp := new(BSPDungeonMap)
 
 	spawnRoom := findRoom(root.left)
 
 	bsp.rooms = rooms
 	bsp.level = CreateBasicMap(tiles)
 	bsp.playerSpawnPoint = util.PositionAt(
-		spawnRoom.position.X()+spawnRoom.size.Width()/2,
-		spawnRoom.position.Y()+spawnRoom.size.Height()/2,
+		spawnRoom.Position().X()+spawnRoom.Size().Width()/2,
+		spawnRoom.Position().Y()+spawnRoom.Size().Height()/2,
 	)
 
 	return bsp
 }
 
-func (bsp *BSPDungeonLevel) PlayerSpawnPoint() util.Position {
-	return bsp.playerSpawnPoint
-}
-
-func findRoom(parent *bspNode) Room {
+func findRoom(parent *bspNode) util.Room {
 	if parent.hasRoom {
 		return parent.room
 	}
@@ -280,11 +256,11 @@ func placeWallAtIfNotPassable(tiles [][]Tile, x, y int) {
 	tiles[y][x] = CreateStaticTile(x, y, TileTypeWall())
 }
 
-func makeRoom(tiles [][]Tile, room Room) {
-	width := room.size.Width()
-	height := room.size.Height()
-	x := room.position.X()
-	y := room.position.Y()
+func makeRoom(tiles [][]Tile, room util.Room) {
+	width := room.Size().Width()
+	height := room.Size().Height()
+	x := room.Position().X()
+	y := room.Position().Y()
 
 	for w := x; w < x+width+1; w++ {
 		tiles[y][w] = CreateStaticTile(w, y, TileTypeWall())
@@ -301,23 +277,4 @@ func makeRoom(tiles [][]Tile, room Room) {
 			tiles[h][w] = CreateStaticTile(w, h, TileTypeGround())
 		}
 	}
-}
-
-func (bsp *BSPDungeonLevel) Size() util.Size {
-	return bsp.level.Size()
-}
-
-func (bsp *BSPDungeonLevel) SetTileAt(x int, y int, t Tile) {
-	bsp.level.SetTileAt(x, y, t)
-}
-
-func (bsp *BSPDungeonLevel) TileAt(x int, y int) Tile {
-	return bsp.level.TileAt(x, y)
-}
-
-func (bsp *BSPDungeonLevel) Tick() {
-}
-
-func (bsp *BSPDungeonLevel) Rooms() []Room {
-	return bsp.rooms
 }

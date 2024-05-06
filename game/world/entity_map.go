@@ -1,0 +1,101 @@
+package world
+
+import (
+	"maps"
+	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/util"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/google/uuid"
+)
+
+type EntityMap struct {
+	entities map[int]EntityTile
+
+	util.Sized
+}
+
+func CreateEntityMap(width, height int) *EntityMap {
+	return &EntityMap{
+		entities: make(map[int]EntityTile, 0),
+		Sized:    util.WithSize(util.SizeOf(width, height)),
+	}
+}
+
+func (em *EntityMap) SetTileAt(x int, y int, t Tile) {
+	// if !em.FitsWithin(x, y) {
+	// 	return
+	// }
+
+	// index := em.Size().AsArrayIndex(x, y)
+
+	// TODO? May not be necessary
+}
+
+func (em *EntityMap) FindEntityByUuid(uuid uuid.UUID) (key int, entity EntityTile) {
+	for i, e := range em.entities {
+		if e.Entity().UniqueId() == uuid {
+			return i, e
+		}
+	}
+
+	return -1, nil
+}
+
+func (em *EntityMap) AddEntity(entity model.MovableEntity, presentation rune, style tcell.Style) {
+	if !em.FitsWithin(entity.Position().XY()) {
+		return
+	}
+
+	key := em.Size().AsArrayIndex(entity.Position().XY())
+	et := CreateBasicEntityTile(entity, presentation, style)
+
+	em.entities[key] = et
+}
+
+func (em *EntityMap) DropEntity(uuid uuid.UUID) {
+	maps.DeleteFunc(em.entities, func(i int, et EntityTile) bool {
+		if et.Entity().UniqueId() == uuid {
+			return true
+		}
+
+		return false
+	})
+}
+
+func (em *EntityMap) MoveEntity(uuid uuid.UUID, dx, dy int) {
+	oldKey, e := em.FindEntityByUuid(uuid)
+
+	if e == nil {
+		return
+	}
+
+	if !em.FitsWithin(e.Entity().Position().WithOffset(dx, dy).XY()) {
+		return
+	}
+
+	delete(em.entities, oldKey)
+
+	newPos := e.Entity().Position().WithOffset(dx, dy)
+	e.Entity().MoveTo(newPos)
+
+	newKey := em.Size().AsArrayIndex(e.Entity().Position().XY())
+
+	em.entities[newKey] = e
+}
+
+func (em *EntityMap) TileAt(x int, y int) Tile {
+	if !em.FitsWithin(x, y) {
+		return CreateStaticTile(x, y, TileTypeVoid())
+	}
+
+	key := em.Size().AsArrayIndex(x, y)
+
+	return em.entities[key]
+}
+
+func (em *EntityMap) Tick(dt int64) {
+	for _, e := range em.entities {
+		e.Entity().Tick(dt)
+	}
+}

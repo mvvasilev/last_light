@@ -32,8 +32,8 @@ func (p *Player) Position() util.Position {
 	return p.position
 }
 
-func (p *Player) Move(dir Direction) {
-	p.position = p.Position().WithOffset(MovementDirectionOffset(dir))
+func (p *Player) MoveTo(newPos util.Position) {
+	p.position = newPos
 }
 
 func (p *Player) Presentation() (rune, tcell.Style) {

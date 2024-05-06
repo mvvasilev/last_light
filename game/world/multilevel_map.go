@@ -1,4 +1,4 @@
-package model
+package world
 
 import "mvvasilev/last_light/util"
 
@@ -102,8 +102,8 @@ func (mm *MultilevelMap) TileAtHeight(x, y, height int) Tile {
 	return mm.layers[height].TileAt(x, y)
 }
 
-func (mm *MultilevelMap) Tick() {
+func (mm *MultilevelMap) Tick(dt int64) {
 	for _, l := range mm.layers {
-		l.Tick()
+		l.Tick(dt)
 	}
 }
