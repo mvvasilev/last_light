@@ -2,7 +2,6 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
-	engine1 "mvvasilev/last_light/engine"
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
@@ -45,12 +44,12 @@ func (w *UIWindow) MoveTo(x int, y int) {
 
 }
 
-func (w *UIWindow) Position() engine1.Position {
+func (w *UIWindow) Position() engine.Position {
 	return w.box.Position()
 }
 
-func (w *UIWindow) Size() engine1.Size {
-	return engine1.SizeOf(0, 0)
+func (w *UIWindow) Size() engine.Size {
+	return engine.SizeOf(0, 0)
 }
 
 func (w *UIWindow) Draw(v views.View) {

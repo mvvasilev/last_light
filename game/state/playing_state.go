@@ -2,7 +2,6 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-	engine1 "mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
 	"mvvasilev/last_light/game/world"
 
@@ -26,7 +25,7 @@ type PlayingState struct {
 func BeginPlayingState() *PlayingState {
 	s := new(PlayingState)
 
-	mapSize := engine1.SizeOf(128, 128)
+	mapSize := engine.SizeOf(128, 128)
 
 	dungeonLevel := world.CreateBSPDungeonMap(mapSize.Width(), mapSize.Height(), 4)
 
@@ -37,11 +36,15 @@ func BeginPlayingState() *PlayingState {
 	genTable[0.051] = model.ItemTypeLongsword()
 	genTable[0.052] = model.ItemTypeKey()
 
-	itemTiles := world.SpawnItems(dungeonLevel.Rooms(), 0.025, genTable)
+	itemTiles := world.SpawnItems(dungeonLevel.Rooms(), 0.01, genTable)
 
 	itemLevel := world.CreateEmptyDungeonLevel(mapSize.Width(), mapSize.Height())
 
 	for _, it := range itemTiles {
+		if !dungeonLevel.TileAt(it.Position().XY()).Passable() {
+			continue
+		}
+
 		itemLevel.SetTileAt(it.Position().X(), it.Position().Y(), it)
 	}
 
@@ -58,9 +61,9 @@ func BeginPlayingState() *PlayingState {
 	s.entityMap.AddEntity(s.player, '@', tcell.StyleDefault)
 
 	s.viewport = engine.CreateViewport(
-		engine1.PositionAt(0, 0),
+		engine.PositionAt(0, 0),
 		dungeonLevel.PlayerSpawnPoint(),
-		engine1.SizeOf(80, 24),
+		engine.SizeOf(80, 24),
 		tcell.StyleDefault,
 	)
 

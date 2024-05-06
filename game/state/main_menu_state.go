@@ -2,7 +2,6 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-	engine1 "mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/ui"
 
 	"github.com/gdamore/tcell/v2"
@@ -50,13 +49,13 @@ func NewMainMenuState() *MainMenuState {
 func (mms *MainMenuState) OnInput(e *tcell.EventKey) {
 	if e.Key() == tcell.KeyDown {
 		mms.buttons[mms.currButtonSelected].Unhighlight()
-		mms.currButtonSelected = engine1.LimitIncrement(mms.currButtonSelected, 2)
+		mms.currButtonSelected = engine.LimitIncrement(mms.currButtonSelected, 2)
 		mms.buttons[mms.currButtonSelected].Highlight()
 	}
 
 	if e.Key() == tcell.KeyUp {
 		mms.buttons[mms.currButtonSelected].Unhighlight()
-		mms.currButtonSelected = engine1.LimitDecrement(mms.currButtonSelected, 0)
+		mms.currButtonSelected = engine.LimitDecrement(mms.currButtonSelected, 0)
 		mms.buttons[mms.currButtonSelected].Highlight()
 	}
 

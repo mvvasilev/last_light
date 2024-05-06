@@ -2,7 +2,6 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
-	engine1 "mvvasilev/last_light/engine"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
@@ -45,11 +44,11 @@ func (b *UIBorderedButton) MoveTo(x int, y int) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *UIBorderedButton) Position() engine1.Position {
+func (b *UIBorderedButton) Position() engine.Position {
 	panic("not implemented") // TODO: Implement
 }
 
-func (b *UIBorderedButton) Size() engine1.Size {
+func (b *UIBorderedButton) Size() engine.Size {
 	panic("not implemented") // TODO: Implement
 }
 

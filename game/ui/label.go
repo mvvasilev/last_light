@@ -2,7 +2,6 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
-	engine1 "mvvasilev/last_light/engine"
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
@@ -41,11 +40,11 @@ func (t *UILabel) MoveTo(x int, y int) {
 	t.text = engine.CreateText(x, y, int(t.text.Size().Width()), int(t.Size().Height()), t.text.Content(), t.text.Style())
 }
 
-func (t *UILabel) Position() engine1.Position {
+func (t *UILabel) Position() engine.Position {
 	return t.text.Position()
 }
 
-func (t *UILabel) Size() engine1.Size {
+func (t *UILabel) Size() engine.Size {
 	return t.text.Size()
 }
 

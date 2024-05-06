@@ -3,7 +3,6 @@ package menu
 import (
 	"fmt"
 	"mvvasilev/last_light/engine"
-	engine1 "mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
 	"mvvasilev/last_light/game/ui"
 
@@ -27,7 +26,7 @@ type PlayerInventoryMenu struct {
 	selectedItem   *engine.ArbitraryDrawable
 	help           *ui.UILabel
 
-	selectedInventorySlot engine1.Position
+	selectedInventorySlot engine.Position
 }
 
 func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventory, style tcell.Style, highlightStyle tcell.Style) *PlayerInventoryMenu {
@@ -138,11 +137,11 @@ func (pim *PlayerInventoryMenu) MoveTo(x int, y int) {
 
 }
 
-func (pim *PlayerInventoryMenu) Position() engine1.Position {
+func (pim *PlayerInventoryMenu) Position() engine.Position {
 	return pim.inventoryMenu.Position()
 }
 
-func (pim *PlayerInventoryMenu) Size() engine1.Size {
+func (pim *PlayerInventoryMenu) Size() engine.Size {
 	return pim.inventoryMenu.Size()
 }
 
@@ -156,7 +155,7 @@ func (pim *PlayerInventoryMenu) UniqueId() uuid.UUID {
 
 func (pim *PlayerInventoryMenu) SelectSlot(x, y int) {
 	pim.inventoryGrid.Unhighlight()
-	pim.selectedInventorySlot = engine1.PositionAt(x, y)
+	pim.selectedInventorySlot = engine.PositionAt(x, y)
 	pim.inventoryGrid.Highlight(pim.selectedInventorySlot)
 }
 
