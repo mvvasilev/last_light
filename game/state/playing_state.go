@@ -3,6 +3,7 @@ package state
 import (
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/ui"
 	"mvvasilev/last_light/game/world"
 
 	"github.com/gdamore/tcell/v2"
@@ -10,9 +11,10 @@ import (
 )
 
 type PlayingState struct {
-	player    *model.Player
-	entityMap *world.EntityMap
-	level     *world.MultilevelMap
+	player  *model.Player
+	someNPC *model.NPC
+
+	dungeon *world.Dungeon
 
 	viewport *engine.Viewport
 
@@ -20,6 +22,10 @@ type PlayingState struct {
 	pauseGame           bool
 	openInventory       bool
 	pickUpUnderPlayer   bool
+	interact            bool
+	moveEntities        bool
+
+	nextGameState GameState
 }
 
 func BeginPlayingState() *PlayingState {
@@ -27,45 +33,23 @@ func BeginPlayingState() *PlayingState {
 
 	mapSize := engine.SizeOf(128, 128)
 
-	dungeonLevel := world.CreateBSPDungeonMap(mapSize.Width(), mapSize.Height(), 4)
+	s.dungeon = world.CreateDungeon(mapSize.Width(), mapSize.Height(), 1)
 
-	genTable := make(map[float32]*model.ItemType, 0)
+	s.player = model.CreatePlayer(s.dungeon.CurrentLevel().PlayerSpawnPoint().XY())
 
-	genTable[0.2] = model.ItemTypeFish()
-	genTable[0.05] = model.ItemTypeBow()
-	genTable[0.051] = model.ItemTypeLongsword()
-	genTable[0.052] = model.ItemTypeKey()
+	s.someNPC = model.CreateNPC(s.dungeon.CurrentLevel().NextLevelStaircase())
 
-	itemTiles := world.SpawnItems(dungeonLevel.Rooms(), 0.01, genTable)
-
-	itemLevel := world.CreateEmptyDungeonLevel(mapSize.Width(), mapSize.Height())
-
-	for _, it := range itemTiles {
-		if !dungeonLevel.TileAt(it.Position().XY()).Passable() {
-			continue
-		}
-
-		itemLevel.SetTileAt(it.Position().X(), it.Position().Y(), it)
-	}
-
-	s.player = model.CreatePlayer(dungeonLevel.PlayerSpawnPoint().XY())
-
-	s.entityMap = world.CreateEntityMap(mapSize.WH())
-
-	s.level = world.CreateMultilevelMap(
-		dungeonLevel,
-		itemLevel,
-		s.entityMap,
-	)
-
-	s.entityMap.AddEntity(s.player, '@', tcell.StyleDefault)
+	s.dungeon.CurrentLevel().AddEntity(s.player, '@', tcell.StyleDefault)
+	s.dungeon.CurrentLevel().AddEntity(s.someNPC, 'N', tcell.StyleDefault)
 
 	s.viewport = engine.CreateViewport(
 		engine.PositionAt(0, 0),
-		dungeonLevel.PlayerSpawnPoint(),
+		s.dungeon.CurrentLevel().PlayerSpawnPoint(),
 		engine.SizeOf(80, 24),
 		tcell.StyleDefault,
 	)
+
+	s.nextGameState = s
 
 	return s
 }
@@ -88,36 +72,143 @@ func (ps *PlayingState) MovePlayer() {
 	}
 
 	newPlayerPos := ps.player.Position().WithOffset(model.MovementDirectionOffset(ps.movePlayerDirection))
-	tileAtMovePos := ps.level.TileAt(newPlayerPos.XY())
 
-	if tileAtMovePos.Passable() {
+	if ps.dungeon.CurrentLevel().IsTilePassable(newPlayerPos.XY()) {
 		dx, dy := model.MovementDirectionOffset(ps.movePlayerDirection)
-		ps.entityMap.MoveEntity(ps.player.UniqueId(), dx, dy)
+		ps.dungeon.CurrentLevel().MoveEntity(ps.player.UniqueId(), dx, dy)
 		ps.viewport.SetCenter(ps.player.Position())
 	}
 
 	ps.movePlayerDirection = model.DirectionNone
 }
 
+func (ps *PlayingState) InteractBelowPlayer() {
+	playerPos := ps.player.Position()
+
+	if playerPos == ps.dungeon.CurrentLevel().NextLevelStaircase() {
+		ps.SwitchToNextLevel()
+		return
+	}
+
+	if playerPos == ps.dungeon.CurrentLevel().PreviousLevelStaircase() {
+		ps.SwitchToPreviousLevel()
+		return
+	}
+}
+
+func (ps *PlayingState) SwitchToNextLevel() {
+	if !ps.dungeon.HasNextLevel() {
+		ps.nextGameState = CreateDialogState(
+			ui.CreateOkDialog(
+				"The Unknown Depths",
+				"The staircases descent down to the lower levels is seemingly blocked by multiple large boulders. They appear immovable.",
+				"Continue",
+				40,
+				func() {
+					ps.nextGameState = ps
+				},
+			),
+			ps,
+		)
+
+		return
+	}
+
+	ps.dungeon.CurrentLevel().DropEntity(ps.player.UniqueId())
+
+	ps.dungeon.MoveToNextLevel()
+
+	ps.player.MoveTo(ps.dungeon.CurrentLevel().PlayerSpawnPoint())
+
+	ps.viewport = engine.CreateViewport(
+		engine.PositionAt(0, 0),
+		ps.dungeon.CurrentLevel().PlayerSpawnPoint(),
+		engine.SizeOf(80, 24),
+		tcell.StyleDefault,
+	)
+
+	ps.dungeon.CurrentLevel().AddEntity(ps.player, '@', tcell.StyleDefault)
+}
+
+func (ps *PlayingState) SwitchToPreviousLevel() {
+	if !ps.dungeon.HasPreviousLevel() {
+		ps.nextGameState = CreateDialogState(
+			ui.CreateOkDialog(
+				"The Surface",
+				"You feel the gentle, yet chilling breeze of the surface make its way through the weaving cavern tunnels, the very same you had to make your way through to get where you are. There is nothing above that you need. Find the last light, or die trying.",
+				"Continue",
+				40,
+				func() {
+					ps.nextGameState = ps
+				},
+			),
+			ps,
+		)
+
+		return
+	}
+
+	ps.dungeon.CurrentLevel().DropEntity(ps.player.UniqueId())
+
+	ps.dungeon.MoveToPreviousLevel()
+
+	ps.player.MoveTo(ps.dungeon.CurrentLevel().NextLevelStaircase())
+
+	ps.viewport = engine.CreateViewport(
+		engine.PositionAt(0, 0),
+		ps.dungeon.CurrentLevel().NextLevelStaircase(),
+		engine.SizeOf(80, 24),
+		tcell.StyleDefault,
+	)
+
+	ps.dungeon.CurrentLevel().AddEntity(ps.player, '@', tcell.StyleDefault)
+}
+
 func (ps *PlayingState) PickUpItemUnderPlayer() {
 	pos := ps.player.Position()
-	tile := ps.level.TileAtHeight(pos.X(), pos.Y(), 1)
+	item := ps.dungeon.CurrentLevel().RemoveItemAt(pos.XY())
 
-	itemTile, ok := tile.(*world.ItemTile)
-
-	if !ok {
+	if item == nil {
 		return
 	}
 
-	item := model.CreateItem(itemTile.Type(), itemTile.Quantity())
-
-	success := ps.player.Inventory().Push(item)
+	success := ps.player.Inventory().Push(*item)
 
 	if !success {
+		ps.dungeon.CurrentLevel().SetItemAt(pos.X(), pos.Y(), *item)
+	}
+}
+
+func (ps *PlayingState) CalcPathToPlayerAndMove() {
+	distanceToPlayer := ps.someNPC.Position().Distance(ps.player.Position())
+	if distanceToPlayer > 16 {
 		return
 	}
 
-	ps.level.SetTileAtHeight(pos.X(), pos.Y(), 1, nil)
+	pathToPlayer := engine.FindPath(
+		ps.someNPC.Position(),
+		ps.player.Position(),
+		16,
+		func(x, y int) bool {
+			if x == ps.player.Position().X() && y == ps.player.Position().Y() {
+				return true
+			}
+
+			return ps.dungeon.CurrentLevel().IsTilePassable(x, y)
+		},
+	)
+
+	nextPos, hasNext := pathToPlayer.Next()
+
+	if !hasNext {
+		return
+	}
+
+	if nextPos.Equals(ps.player.Position()) {
+		return
+	}
+
+	ps.dungeon.CurrentLevel().MoveEntityTo(ps.someNPC.UniqueId(), nextPos.X(), nextPos.Y())
 }
 
 func (ps *PlayingState) OnInput(e *tcell.EventKey) {
@@ -138,15 +229,24 @@ func (ps *PlayingState) OnInput(e *tcell.EventKey) {
 		return
 	}
 
+	if e.Key() == tcell.KeyRune && e.Rune() == 'e' {
+		ps.interact = true
+		return
+	}
+
 	switch e.Key() {
 	case tcell.KeyUp:
 		ps.movePlayerDirection = model.DirectionUp
+		ps.moveEntities = true
 	case tcell.KeyDown:
 		ps.movePlayerDirection = model.DirectionDown
+		ps.moveEntities = true
 	case tcell.KeyLeft:
 		ps.movePlayerDirection = model.DirectionLeft
+		ps.moveEntities = true
 	case tcell.KeyRight:
 		ps.movePlayerDirection = model.DirectionRight
+		ps.moveEntities = true
 	}
 }
 
@@ -171,13 +271,23 @@ func (ps *PlayingState) OnTick(dt int64) GameState {
 		ps.PickUpItemUnderPlayer()
 	}
 
-	return ps
+	if ps.interact {
+		ps.interact = false
+		ps.InteractBelowPlayer()
+	}
+
+	if ps.moveEntities {
+		ps.moveEntities = false
+		ps.CalcPathToPlayerAndMove()
+	}
+
+	return ps.nextGameState
 }
 
 func (ps *PlayingState) CollectDrawables() []engine.Drawable {
 	return engine.Multidraw(engine.CreateDrawingInstructions(func(v views.View) {
 		ps.viewport.DrawFromProvider(v, func(x, y int) (rune, tcell.Style) {
-			tile := ps.level.TileAt(x, y)
+			tile := ps.dungeon.CurrentLevel().TileAt(x, y)
 
 			if tile != nil {
 				return tile.Presentation()

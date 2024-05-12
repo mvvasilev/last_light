@@ -22,7 +22,8 @@ func CreateEntityMap(width, height int) *EntityMap {
 	}
 }
 
-func (em *EntityMap) SetTileAt(x int, y int, t Tile) {
+func (em *EntityMap) SetTileAt(x int, y int, t Tile) Tile {
+	return nil
 	// if !em.FitsWithin(x, y) {
 	// 	return
 	// }
@@ -74,6 +75,26 @@ func (em *EntityMap) MoveEntity(uuid uuid.UUID, dx, dy int) {
 
 	newPos := e.Entity().Position().WithOffset(dx, dy)
 	e.Entity().MoveTo(newPos)
+
+	newKey := em.Size().AsArrayIndex(e.Entity().Position().XY())
+
+	em.entities[newKey] = e
+}
+
+func (em *EntityMap) MoveEntityTo(uuid uuid.UUID, x, y int) {
+	oldKey, e := em.FindEntityByUuid(uuid)
+
+	if e == nil {
+		return
+	}
+
+	if !em.FitsWithin(x, y) {
+		return
+	}
+
+	delete(em.entities, oldKey)
+
+	e.Entity().MoveTo(engine.PositionAt(x, y))
 
 	newKey := em.Size().AsArrayIndex(e.Entity().Position().XY())
 

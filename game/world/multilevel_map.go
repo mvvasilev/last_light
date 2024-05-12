@@ -22,8 +22,8 @@ func (mm *MultilevelMap) Size() engine.Size {
 	return mm.layers[0].Size()
 }
 
-func (mm *MultilevelMap) SetTileAt(x, y int, t Tile) {
-	mm.layers[0].SetTileAt(x, y, t)
+func (mm *MultilevelMap) SetTileAt(x, y int, t Tile) Tile {
+	return mm.layers[0].SetTileAt(x, y, t)
 }
 
 func (mm *MultilevelMap) UnsetTileAtHeight(x, y, height int) {

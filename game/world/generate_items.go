@@ -4,9 +4,10 @@ import (
 	"math/rand"
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
+	"slices"
 )
 
-func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTable map[float32]*model.ItemType) []Tile {
+func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTable map[float32]*model.ItemType, forbiddenPositions []engine.Position) []Tile {
 	rooms := spawnableAreas
 
 	itemTiles := make([]Tile, 0, 10)
@@ -31,6 +32,10 @@ func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTa
 				engine.RandInt(r.Position().X()+1, r.Position().X()+r.Size().Width()-1),
 				engine.RandInt(r.Position().Y()+1, r.Position().Y()+r.Size().Height()-1),
 			)
+
+			if slices.Contains(forbiddenPositions, pos) {
+				continue
+			}
 
 			itemTiles = append(itemTiles, CreateItemTile(pos, itemType, 1))
 		}

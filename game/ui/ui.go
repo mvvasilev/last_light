@@ -26,5 +26,5 @@ type UIHighlightableElement interface {
 type UISelectableElement interface {
 	Select()
 	OnSelect(func())
-	UIHighlightableElement
+	UIElement
 }

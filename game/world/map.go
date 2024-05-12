@@ -6,19 +6,25 @@ import (
 
 type Map interface {
 	Size() engine.Size
-	SetTileAt(x, y int, t Tile)
+	SetTileAt(x, y int, t Tile) Tile
 	TileAt(x, y int) Tile
 	Tick(dt int64)
 }
 
 type WithPlayerSpawnPoint interface {
 	PlayerSpawnPoint() engine.Position
-	Map
 }
 
 type WithRooms interface {
 	Rooms() []engine.BoundingBox
-	Map
+}
+
+type WithNextLevelStaircasePosition interface {
+	NextLevelStaircasePosition() engine.Position
+}
+
+type WithPreviousLevelStaircasePosition interface {
+	PreviousLevelStaircasePosition() engine.Position
 }
 
 type BasicMap struct {
@@ -40,16 +46,18 @@ func (bm *BasicMap) Size() engine.Size {
 	return engine.SizeOf(len(bm.tiles[0]), len(bm.tiles))
 }
 
-func (bm *BasicMap) SetTileAt(x int, y int, t Tile) {
+func (bm *BasicMap) SetTileAt(x int, y int, t Tile) Tile {
 	if len(bm.tiles) <= y || len(bm.tiles[0]) <= x {
-		return
+		return CreateStaticTile(x, y, TileTypeVoid())
 	}
 
 	if x < 0 || y < 0 {
-		return
+		return CreateStaticTile(x, y, TileTypeVoid())
 	}
 
 	bm.tiles[y][x] = t
+
+	return bm.tiles[y][x]
 }
 
 func (bm *BasicMap) TileAt(x int, y int) Tile {

@@ -39,7 +39,7 @@ func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 		tiles[h] = make([]Tile, width)
 	}
 
-	rooms := make([]engine.BoundingBox, 0, 2^numSplits)
+	rooms := make([]engine.BoundingBox, 0, numSplits*numSplits)
 
 	iterateBspLeaves(root, func(leaf *bspNode) {
 		x := engine.RandInt(leaf.origin.X(), leaf.origin.X()+leaf.size.Width()/4)
@@ -89,13 +89,23 @@ func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 	bsp := new(BSPDungeonMap)
 
 	spawnRoom := findRoom(root.left)
+	staircaseRoom := findRoom(root.right)
 
 	bsp.rooms = rooms
 	bsp.level = CreateBasicMap(tiles)
+
 	bsp.playerSpawnPoint = engine.PositionAt(
 		spawnRoom.Position().X()+spawnRoom.Size().Width()/2,
 		spawnRoom.Position().Y()+spawnRoom.Size().Height()/2,
 	)
+
+	bsp.nextLevelStaircase = engine.PositionAt(
+		staircaseRoom.Position().X()+staircaseRoom.Size().Width()/2,
+		staircaseRoom.Position().Y()+staircaseRoom.Size().Height()/2,
+	)
+
+	bsp.level.SetTileAt(bsp.nextLevelStaircase.X(), bsp.nextLevelStaircase.Y(), CreateStaticTile(bsp.nextLevelStaircase.X(), bsp.nextLevelStaircase.Y(), TileTypeStaircaseDown()))
+	bsp.level.SetTileAt(bsp.playerSpawnPoint.X(), bsp.playerSpawnPoint.Y(), CreateStaticTile(bsp.playerSpawnPoint.X(), bsp.playerSpawnPoint.Y(), TileTypeStaircaseUp()))
 
 	return bsp
 }

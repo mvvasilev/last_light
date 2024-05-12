@@ -1,6 +1,9 @@
 package engine
 
-import "math/rand"
+import (
+	"math"
+	"math/rand"
+)
 
 type Positioned struct {
 	pos Position
@@ -14,6 +17,10 @@ func WithPosition(pos Position) Positioned {
 
 func (wp *Positioned) Position() Position {
 	return wp.pos
+}
+
+func (wp *Positioned) SetPosition(pos Position) {
+	wp.pos = pos
 }
 
 type Position struct {
@@ -35,6 +42,18 @@ func (p Position) Y() int {
 
 func (p Position) XY() (int, int) {
 	return p.x, p.y
+}
+
+func (p Position) DistanceSquared(pos Position) float64 {
+	return float64((pos.x-p.x)*(pos.x-p.x) + (pos.y-p.y)*(pos.y-p.y))
+}
+
+func (p Position) Distance(pos Position) float64 {
+	return math.Sqrt(p.DistanceSquared(pos))
+}
+
+func (p Position) Equals(other Position) bool {
+	return p.x == other.x && p.y == other.y
 }
 
 func (p Position) WithOffset(xOffset int, yOffset int) Position {
@@ -91,6 +110,10 @@ func (s Size) AsArrayIndex(x, y int) int {
 	return y*s.width + x
 }
 
+func (s Size) Contains(x, y int) bool {
+	return 0 <= x && x < s.width && 0 <= y && y < s.height
+}
+
 func LimitIncrement(i int, limit int) int {
 	if (i + 1) > limit {
 		return i
@@ -109,4 +132,14 @@ func LimitDecrement(i int, limit int) int {
 
 func RandInt(min, max int) int {
 	return min + rand.Intn(max-min)
+}
+
+func MapSlice[S ~[]E, E any, R any](slice S, mappingFunc func(e E) R) []R {
+	newSlice := make([]R, 0, len(slice))
+
+	for _, el := range slice {
+		newSlice = append(newSlice, mappingFunc(el))
+	}
+
+	return newSlice
 }

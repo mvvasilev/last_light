@@ -17,6 +17,8 @@ const (
 	MaterialVoid
 	MaterialClosedDoor
 	MaterialOpenDoor
+	MaterialStaircaseDown
+	MaterialStaircaseUp
 )
 
 type TileType struct {
@@ -94,6 +96,26 @@ func TileTypeOpenDoor() TileType {
 		Transparent:  false,
 		Presentation: '_',
 		Style:        tcell.StyleDefault.Foreground(tcell.ColorLightSteelBlue),
+	}
+}
+
+func TileTypeStaircaseDown() TileType {
+	return TileType{
+		Material:     MaterialStaircaseDown,
+		Passable:     true,
+		Transparent:  false,
+		Presentation: '≡',
+		Style:        tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Attributes(tcell.AttrBold),
+	}
+}
+
+func TileTypeStaircaseUp() TileType {
+	return TileType{
+		Material:     MaterialStaircaseUp,
+		Passable:     true,
+		Transparent:  false,
+		Presentation: '^',
+		Style:        tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Attributes(tcell.AttrBold),
 	}
 }
 

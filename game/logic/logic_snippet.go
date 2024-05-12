@@ -1,4 +1,4 @@
-package model
+package logic
 
 import (
 	"mvvasilev/last_light/game/model"
