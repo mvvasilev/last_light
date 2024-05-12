@@ -44,12 +44,12 @@ func (p Position) XY() (int, int) {
 	return p.x, p.y
 }
 
-func (p Position) DistanceSquared(pos Position) float64 {
-	return float64((pos.x-p.x)*(pos.x-p.x) + (pos.y-p.y)*(pos.y-p.y))
+func (p Position) DistanceSquared(pos Position) int {
+	return (pos.x-p.x)*(pos.x-p.x) + (pos.y-p.y)*(pos.y-p.y)
 }
 
-func (p Position) Distance(pos Position) float64 {
-	return math.Sqrt(p.DistanceSquared(pos))
+func (p Position) Distance(pos Position) int {
+	return int(math.Floor(math.Sqrt(float64(p.DistanceSquared(pos)))))
 }
 
 func (p Position) Equals(other Position) bool {

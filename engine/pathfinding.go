@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"math"
 	"slices"
 )
 
@@ -10,14 +9,12 @@ type pathNode struct {
 
 	parent *pathNode
 
-	g float64 // distance between current node and start node
-	h float64 // heuristic - squared distance from current node to end node
-	f float64 // total cost of this node
+	g int // distance between current node and start node
+	h int // heuristic - squared distance from current node to end node
+	f int // total cost of this node
 }
 
-func FindPath(from Position, to Position, maxDistance int, isPassable func(x, y int) bool) *Path {
-	maxDistanceSquared := math.Pow(float64(maxDistance), 2)
-
+func FindPath(from Position, to Position, isPassable func(x, y int) bool) *Path {
 	var openList = make([]*pathNode, 0)
 	var closedList = make([]*pathNode, 0)
 
@@ -32,6 +29,7 @@ func FindPath(from Position, to Position, maxDistance int, isPassable func(x, y 
 	var lastNode *pathNode
 
 	for {
+
 		if len(openList) == 0 {
 			break
 		}
@@ -87,13 +85,8 @@ func FindPath(from Position, to Position, maxDistance int, isPassable func(x, y 
 			}
 
 			child.g = currentNode.g + 1
-
-			if child.g > maxDistanceSquared {
-				continue
-			}
-
 			child.h = to.DistanceSquared(child.pos)
-			child.f = float64(child.g) + child.f
+			child.f = child.g + child.h
 
 			// If child is already contained in openList, and has lower g
 			if slices.ContainsFunc(openList, func(el *pathNode) bool { return el.pos.Equals(child.pos) && child.g > el.g }) {

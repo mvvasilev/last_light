@@ -181,14 +181,14 @@ func (ps *PlayingState) PickUpItemUnderPlayer() {
 
 func (ps *PlayingState) CalcPathToPlayerAndMove() {
 	distanceToPlayer := ps.someNPC.Position().Distance(ps.player.Position())
-	if distanceToPlayer > 16 {
+
+	if distanceToPlayer > 20 {
 		return
 	}
 
 	pathToPlayer := engine.FindPath(
 		ps.someNPC.Position(),
 		ps.player.Position(),
-		16,
 		func(x, y int) bool {
 			if x == ps.player.Position().X() && y == ps.player.Position().Y() {
 				return true
