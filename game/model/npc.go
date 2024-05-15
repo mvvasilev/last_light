@@ -19,10 +19,6 @@ func CreateNPC(pos engine.Position) *NPC {
 	}
 }
 
-func (c *NPC) Position() engine.Position {
-	return c.Positioned.Position()
-}
-
 func (c *NPC) MoveTo(newPosition engine.Position) {
 	c.Positioned.SetPosition(newPosition)
 }
@@ -32,7 +28,6 @@ func (c *NPC) UniqueId() uuid.UUID {
 }
 
 func (c *NPC) Input(e *tcell.EventKey) {
-
 }
 
 func (c *NPC) Tick(dt int64) {
