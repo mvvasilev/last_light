@@ -267,7 +267,7 @@ func TestBasicEntity_AddComponent(t *testing.T) {
 				containedComponents: tt.fields.containedComponents,
 				components:          tt.fields.components,
 			}
-			ent.AddComponent(tt.args.c)
+			ent.addComponent(tt.args.c)
 		})
 	}
 }
@@ -737,6 +737,41 @@ func TestWorld_Input(t *testing.T) {
 				systems:                  tt.fields.systems,
 			}
 			w.Input(tt.args.e)
+		})
+	}
+}
+
+func TestWorld_FindEntitiesWithComponents(t *testing.T) {
+	type fields struct {
+		registeredComponentTypes ComponentMask
+		registeredComponentNames map[ComponentType]string
+		entities                 map[EntityId]*BasicEntity
+		components               map[ComponentType][]Component
+		systems                  []System
+	}
+	type args struct {
+		comps ComponentMask
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   []*BasicEntity
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &World{
+				registeredComponentTypes: tt.fields.registeredComponentTypes,
+				registeredComponentNames: tt.fields.registeredComponentNames,
+				entities:                 tt.fields.entities,
+				components:               tt.fields.components,
+				systems:                  tt.fields.systems,
+			}
+			if got := w.FindEntitiesWithComponents(tt.args.comps); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("World.FindEntitiesWithComponents() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

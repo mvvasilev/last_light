@@ -25,9 +25,27 @@ func (e *ECSError) Error() string {
 
 /* ==================================================== */
 
-/* ====================== Types ======================= */
+/* ================== ComponentType =================== */
 
 type ComponentType uint64
+
+func TypeFrom(powerOf2 uint64) (ComponentType, *ECSError) {
+	if powerOf2 > 63 {
+		return 0, ecsError("Failure: Provided number is too high ( component types must be represented by a power of 2, up to 63 )")
+	}
+
+	t := uint64(0)
+
+	for i := range powerOf2 {
+		t *= i
+	}
+
+	return ComponentType(t), nil
+}
+
+/* ==================================================== */
+
+/* ====================== Types ======================= */
 
 type SystemOrder uint8
 
@@ -119,7 +137,8 @@ func (ent *BasicEntity) ContainedComponents() ComponentMask {
 	return ComponentMask(ent.containedComponents)
 }
 
-func (ent *BasicEntity) AddComponent(c Component) {
+func (ent *BasicEntity) addComponent(c Component) {
+	ent.containedComponents = ent.containedComponents.CombinedWithType(c.Type())
 	ent.components[c.Type()] = c
 }
 
@@ -217,6 +236,18 @@ func (w *World) RegisterComponentType(t ComponentType, name string) (err *ECSErr
 	return nil
 }
 
+func (w *World) FindEntitiesWithComponents(comps ComponentMask) []*BasicEntity {
+	ents := make([]*BasicEntity, 16)
+
+	for _, v := range w.entities {
+		if v.ContainsComponents(comps) {
+			ents = append(ents, v)
+		}
+	}
+
+	return ents
+}
+
 func (w *World) AddComponentToEntity(ent *BasicEntity, comp Component) (modifiedEntity *BasicEntity, err *ECSError) {
 	if !w.registeredComponentTypes.Contains(comp.Type()) {
 		return nil, ecsError("Failure: Attempting to add unknown component to an entity.")
@@ -226,7 +257,7 @@ func (w *World) AddComponentToEntity(ent *BasicEntity, comp Component) (modified
 		return nil, ecsError("Failure: Entity already contains component")
 	}
 
-	ent.AddComponent(comp)
+	ent.addComponent(comp)
 
 	if w.components[comp.Type()] == nil {
 		w.components[comp.Type()] = make([]Component, 0)
