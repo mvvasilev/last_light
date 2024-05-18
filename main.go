@@ -6,3 +6,8 @@ func main() {
 	gc := game.CreateGameContext()
 	gc.Run()
 }
+
+func runGame() {
+	gc := game.CreateGameContext()
+	gc.Run()
+}

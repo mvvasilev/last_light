@@ -3,8 +3,6 @@ package ecs
 import (
 	"reflect"
 	"testing"
-
-	"github.com/gdamore/tcell/v2"
 )
 
 func Test_ecsError(t *testing.T) {
@@ -171,9 +169,8 @@ func TestCreateRandomEntityId(t *testing.T) {
 }
 
 func Test_createEntity(t *testing.T) {
-	type args struct {
-		components []Component
-	}
+	type args struct{}
+
 	tests := []struct {
 		name string
 		args args
@@ -183,7 +180,7 @@ func Test_createEntity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := createEntity(tt.args.components...); !reflect.DeepEqual(got, tt.want) {
+			if got := createEntity(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createEntity() = %v, want %v", got, tt.want)
 			}
 		})
@@ -535,41 +532,6 @@ func TestWorld_AddComponentToEntity(t *testing.T) {
 	}
 }
 
-func TestWorld_AddSystem(t *testing.T) {
-	type fields struct {
-		registeredComponentTypes ComponentMask
-		registeredComponentNames map[ComponentType]string
-		entities                 map[EntityId]*BasicEntity
-		components               map[ComponentType][]Component
-		systems                  []System
-	}
-	type args struct {
-		s System
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr *ECSError
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			w := &World{
-				registeredComponentTypes: tt.fields.registeredComponentTypes,
-				registeredComponentNames: tt.fields.registeredComponentNames,
-				entities:                 tt.fields.entities,
-				components:               tt.fields.components,
-				systems:                  tt.fields.systems,
-			}
-			if gotErr := w.AddSystem(tt.args.s); !reflect.DeepEqual(gotErr, tt.wantErr) {
-				t.Errorf("World.AddSystem() = %v, want %v", gotErr, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestWorld_CreateEntity(t *testing.T) {
 	type fields struct {
 		registeredComponentTypes ComponentMask
@@ -709,38 +671,6 @@ func TestWorld_Tick(t *testing.T) {
 	}
 }
 
-func TestWorld_Input(t *testing.T) {
-	type fields struct {
-		registeredComponentTypes ComponentMask
-		registeredComponentNames map[ComponentType]string
-		entities                 map[EntityId]*BasicEntity
-		components               map[ComponentType][]Component
-		systems                  []System
-	}
-	type args struct {
-		e tcell.EventKey
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			w := &World{
-				registeredComponentTypes: tt.fields.registeredComponentTypes,
-				registeredComponentNames: tt.fields.registeredComponentNames,
-				entities:                 tt.fields.entities,
-				components:               tt.fields.components,
-				systems:                  tt.fields.systems,
-			}
-			w.Input(tt.args.e)
-		})
-	}
-}
-
 func TestWorld_FindEntitiesWithComponents(t *testing.T) {
 	type fields struct {
 		registeredComponentTypes ComponentMask
@@ -772,6 +702,38 @@ func TestWorld_FindEntitiesWithComponents(t *testing.T) {
 			if got := w.FindEntitiesWithComponents(tt.args.comps); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("World.FindEntitiesWithComponents() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestWorld_AddSystem(t *testing.T) {
+	type fields struct {
+		registeredComponentTypes ComponentMask
+		registeredComponentNames map[ComponentType]string
+		entities                 map[EntityId]*BasicEntity
+		components               map[ComponentType][]Component
+		systems                  []System
+	}
+	type args struct {
+		s System
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &World{
+				registeredComponentTypes: tt.fields.registeredComponentTypes,
+				registeredComponentNames: tt.fields.registeredComponentNames,
+				entities:                 tt.fields.entities,
+				components:               tt.fields.components,
+				systems:                  tt.fields.systems,
+			}
+			w.AddSystem(tt.args.s)
 		})
 	}
 }

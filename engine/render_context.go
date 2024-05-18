@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/gdamore/tcell/v2"
@@ -40,16 +39,15 @@ func Multidraw(drawables ...Drawable) []Drawable {
 	return arr
 }
 
-type RenderContext struct {
+type EngineContext struct {
 	screen tcell.Screen
 	view   *views.ViewPort
 
-	events    chan tcell.Event
-	quit      chan struct{}
-	drawables chan Drawable
+	events chan tcell.Event
+	quit   chan struct{}
 }
 
-func CreateRenderContext() (*RenderContext, error) {
+func InitEngine() (*EngineContext, error) {
 	screen, sErr := tcell.NewScreen()
 
 	if sErr != nil {
@@ -87,22 +85,21 @@ func CreateRenderContext() (*RenderContext, error) {
 
 	go screen.ChannelEvents(events, quit)
 
-	context := new(RenderContext)
+	context := new(EngineContext)
 
 	context.screen = screen
 	context.events = events
 	context.quit = quit
 	context.view = view
-	context.drawables = make(chan Drawable)
 
 	return context, nil
 }
 
-func (c *RenderContext) Stop() {
+func (c *EngineContext) Stop() {
 	c.screen.Fini()
 }
 
-func (c *RenderContext) CollectInputEvents() []*tcell.EventKey {
+func (c *EngineContext) CollectInputEvents() []*tcell.EventKey {
 	events := make([]tcell.Event, len(c.events))
 
 	select {
@@ -118,20 +115,14 @@ func (c *RenderContext) CollectInputEvents() []*tcell.EventKey {
 		case *tcell.EventKey:
 			inputEvents = append(inputEvents, ev)
 		case *tcell.EventResize:
-			c.onResize(ev)
+			c.Resize(ev.Size())
 		}
 	}
 
 	return inputEvents
 }
 
-func (c *RenderContext) DrawableQueue() chan Drawable {
-	return c.drawables
-}
-
-func (c *RenderContext) onResize(ev *tcell.EventResize) {
-	width, height := ev.Size()
-
+func (c *EngineContext) Resize(width, height int) {
 	c.screen.Clear()
 
 	c.view.Resize(
@@ -144,20 +135,16 @@ func (c *RenderContext) onResize(ev *tcell.EventResize) {
 	c.screen.Sync()
 }
 
-func (c *RenderContext) Draw(deltaTime int64, drawables []Drawable) {
-	fps := 1_000_000 / deltaTime
-
+func (c *EngineContext) Clear() {
 	c.view.Clear()
+}
 
-	msPerFrame := float32(fps) / 1000.0
+func (c *EngineContext) Show() {
+	c.screen.Show()
+}
 
-	fpsText := CreateText(0, 0, 16, 1, fmt.Sprintf("%vms", msPerFrame), tcell.StyleDefault)
-
+func (c *EngineContext) Draw(drawables []Drawable) {
 	for _, d := range drawables {
 		d.Draw(c.view)
 	}
-
-	fpsText.Draw(c.view)
-
-	c.screen.Show()
 }

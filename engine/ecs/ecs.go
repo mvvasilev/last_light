@@ -1,10 +1,9 @@
 package ecs
 
 import (
+	"fmt"
 	"slices"
 	"time"
-
-	"github.com/gdamore/tcell/v2"
 )
 
 /* ===================== ECSError ===================== */
@@ -25,29 +24,7 @@ func (e *ECSError) Error() string {
 
 /* ==================================================== */
 
-/* ================== ComponentType =================== */
-
-type ComponentType uint64
-
-func TypeFrom(powerOf2 uint64) (ComponentType, *ECSError) {
-	if powerOf2 > 63 {
-		return 0, ecsError("Failure: Provided number is too high ( component types must be represented by a power of 2, up to 63 )")
-	}
-
-	t := uint64(0)
-
-	for i := range powerOf2 {
-		t *= i
-	}
-
-	return ComponentType(t), nil
-}
-
-/* ==================================================== */
-
 /* ====================== Types ======================= */
-
-type SystemOrder uint8
 
 type EntityId uint64
 
@@ -90,7 +67,6 @@ func (c ComponentMask) ContainsMultiple(ids ComponentMask) bool {
 type System interface {
 	Name() string
 	Order() int
-	Input(world *World, e tcell.EventKey)
 	Tick(world *World, deltaTime int64)
 }
 
@@ -116,17 +92,11 @@ func CreateRandomEntityId() EntityId {
 	return EntityId(time.Now().UnixNano())
 }
 
-func createEntity(components ...Component) *BasicEntity {
-	ent := &BasicEntity{
+func createEntity() *BasicEntity {
+	return &BasicEntity{
 		id:         CreateRandomEntityId(),
 		components: make(map[ComponentType]Component, 0),
 	}
-
-	for _, c := range components {
-		ent.components[c.Type()] = c
-	}
-
-	return ent
 }
 
 func (ent *BasicEntity) Id() EntityId {
@@ -192,14 +162,17 @@ type World struct {
 
 	entities   map[EntityId]*BasicEntity
 	components map[ComponentType][]Component
+	singletons map[ComponentType]Component
 	systems    []System
 }
 
 func CreateWorld() *World {
 	return &World{
-		entities:   make(map[EntityId]*BasicEntity, 0),
-		systems:    make([]System, 0),
-		components: make(map[ComponentType][]Component, 0),
+		entities:                 make(map[EntityId]*BasicEntity, 0),
+		systems:                  make([]System, 0),
+		components:               make(map[ComponentType][]Component, 0),
+		registeredComponentNames: make(map[ComponentType]string, 0),
+		singletons:               make(map[ComponentType]Component, 0),
 	}
 }
 
@@ -223,6 +196,22 @@ func (w *World) QueryComponents(componentIds ...ComponentType) (components map[C
 	}
 
 	return comps, nil
+}
+
+func (w *World) FetchSingletonComponent(componentId ComponentType) (component Component, err *ECSError) {
+	comp := w.singletons[componentId]
+
+	if comp == nil {
+		componentName := w.registeredComponentNames[componentId]
+
+		return nil, ecsError(fmt.Sprintf("Failure: No singleton component of type %v could be found", componentName))
+	}
+
+	return comp, nil
+}
+
+func (w *World) AddSingletonComponent(component Component) {
+	w.singletons[component.Type()] = component
 }
 
 func (w *World) RegisterComponentType(t ComponentType, name string) (err *ECSError) {
@@ -268,18 +257,20 @@ func (w *World) AddComponentToEntity(ent *BasicEntity, comp Component) (modified
 	return ent, nil
 }
 
-func (w *World) AddSystem(s System) (err *ECSError) {
+func (w *World) AddSystem(s System) {
 	w.systems = append(w.systems, s)
 
 	slices.SortFunc(w.systems, func(a System, b System) int { return a.Order() - b.Order() })
-
-	return nil
 }
 
 func (w *World) CreateEntity(comps ...Component) *BasicEntity {
-	ent := createEntity(comps...)
+	ent := createEntity()
 
 	w.entities[ent.Id()] = ent
+
+	for _, c := range comps {
+		w.AddComponentToEntity(ent, c)
+	}
 
 	return ent
 }
@@ -301,12 +292,6 @@ func (w *World) RemoveEntity(id EntityId) {
 func (w *World) Tick(dt int64) {
 	for _, s := range w.systems {
 		s.Tick(w, dt)
-	}
-}
-
-func (w *World) Input(e tcell.EventKey) {
-	for _, s := range w.systems {
-		s.Input(w, e)
 	}
 }
 
