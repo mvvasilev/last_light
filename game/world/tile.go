@@ -2,6 +2,7 @@ package world
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/item"
 	"mvvasilev/last_light/game/model"
 
 	"github.com/gdamore/tcell/v2"
@@ -26,6 +27,7 @@ type TileType struct {
 	Passable     bool
 	Presentation rune
 	Transparent  bool
+	Opaque       bool
 	Style        tcell.Style
 }
 
@@ -35,6 +37,7 @@ func TileTypeGround() TileType {
 		Passable:     true,
 		Presentation: '.',
 		Transparent:  false,
+		Opaque:       false,
 		Style:        tcell.StyleDefault,
 	}
 }
@@ -45,6 +48,7 @@ func TileTypeRock() TileType {
 		Passable:     false,
 		Presentation: '█',
 		Transparent:  false,
+		Opaque:       true,
 		Style:        tcell.StyleDefault,
 	}
 }
@@ -55,6 +59,7 @@ func TileTypeGrass() TileType {
 		Passable:     true,
 		Presentation: ',',
 		Transparent:  false,
+		Opaque:       false,
 		Style:        tcell.StyleDefault,
 	}
 }
@@ -65,6 +70,7 @@ func TileTypeVoid() TileType {
 		Passable:     false,
 		Presentation: ' ',
 		Transparent:  true,
+		Opaque:       true,
 		Style:        tcell.StyleDefault,
 	}
 }
@@ -75,6 +81,7 @@ func TileTypeWall() TileType {
 		Passable:     false,
 		Presentation: '#',
 		Transparent:  false,
+		Opaque:       true,
 		Style:        tcell.StyleDefault.Background(tcell.ColorGray),
 	}
 }
@@ -85,6 +92,7 @@ func TileTypeClosedDoor() TileType {
 		Passable:     false,
 		Transparent:  false,
 		Presentation: '[',
+		Opaque:       true,
 		Style:        tcell.StyleDefault.Foreground(tcell.ColorLightSteelBlue).Background(tcell.ColorSaddleBrown),
 	}
 }
@@ -95,6 +103,7 @@ func TileTypeOpenDoor() TileType {
 		Passable:     false,
 		Transparent:  false,
 		Presentation: '_',
+		Opaque:       false,
 		Style:        tcell.StyleDefault.Foreground(tcell.ColorLightSteelBlue),
 	}
 }
@@ -105,6 +114,7 @@ func TileTypeStaircaseDown() TileType {
 		Passable:     true,
 		Transparent:  false,
 		Presentation: '≡',
+		Opaque:       false,
 		Style:        tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Attributes(tcell.AttrBold),
 	}
 }
@@ -115,6 +125,7 @@ func TileTypeStaircaseUp() TileType {
 		Passable:     true,
 		Transparent:  false,
 		Presentation: '^',
+		Opaque:       false,
 		Style:        tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Attributes(tcell.AttrBold),
 	}
 }
@@ -124,11 +135,15 @@ type Tile interface {
 	Presentation() (rune, tcell.Style)
 	Passable() bool
 	Transparent() bool
+	Opaque() bool
+	Type() TileType
 }
 
 type StaticTile struct {
 	position engine.Position
 	t        TileType
+
+	style tcell.Style
 }
 
 func CreateStaticTile(x, y int, t TileType) Tile {
@@ -136,8 +151,17 @@ func CreateStaticTile(x, y int, t TileType) Tile {
 
 	st.position = engine.PositionAt(x, y)
 	st.t = t
+	st.style = t.Style
 
 	return st
+}
+
+func CreateStaticTileWithStyleOverride(x, y int, t TileType, style tcell.Style) Tile {
+	return &StaticTile{
+		position: engine.PositionAt(x, y),
+		t:        t,
+		style:    style,
+	}
 }
 
 func (st *StaticTile) Position() engine.Position {
@@ -145,7 +169,7 @@ func (st *StaticTile) Position() engine.Position {
 }
 
 func (st *StaticTile) Presentation() (rune, tcell.Style) {
-	return st.t.Presentation, st.t.Style
+	return st.t.Presentation, st.style
 }
 
 func (st *StaticTile) Passable() bool {
@@ -156,32 +180,30 @@ func (st *StaticTile) Transparent() bool {
 	return st.t.Transparent
 }
 
+func (st *StaticTile) Opaque() bool {
+	return st.t.Opaque
+}
+
 func (st *StaticTile) Type() TileType {
 	return st.t
 }
 
 type ItemTile struct {
 	position engine.Position
-	itemType *model.ItemType
-	quantity int
+	item     item.Item
 }
 
-func CreateItemTile(position engine.Position, itemType *model.ItemType, quantity int) *ItemTile {
+func CreateItemTile(position engine.Position, item item.Item) *ItemTile {
 	it := new(ItemTile)
 
 	it.position = position
-	it.itemType = itemType
-	it.quantity = quantity
+	it.item = item
 
 	return it
 }
 
-func (it *ItemTile) Type() *model.ItemType {
-	return it.itemType
-}
-
-func (it *ItemTile) Quantity() int {
-	return it.quantity
+func (it *ItemTile) Item() item.Item {
+	return it.item
 }
 
 func (it *ItemTile) Position() engine.Position {
@@ -189,7 +211,7 @@ func (it *ItemTile) Position() engine.Position {
 }
 
 func (it *ItemTile) Presentation() (rune, tcell.Style) {
-	return it.itemType.TileIcon(), it.itemType.Style()
+	return it.item.Type().TileIcon(), it.item.Type().Style()
 }
 
 func (it *ItemTile) Passable() bool {
@@ -198,6 +220,14 @@ func (it *ItemTile) Passable() bool {
 
 func (it *ItemTile) Transparent() bool {
 	return false
+}
+
+func (it *ItemTile) Opaque() bool {
+	return false
+}
+
+func (it *ItemTile) Type() TileType {
+	return TileType{}
 }
 
 type EntityTile interface {
@@ -238,4 +268,12 @@ func (bet *BasicEntityTile) Passable() bool {
 
 func (bet *BasicEntityTile) Transparent() bool {
 	return false
+}
+
+func (bet *BasicEntityTile) Opaque() bool {
+	return false
+}
+
+func (bet *BasicEntityTile) Type() TileType {
+	return TileType{}
 }

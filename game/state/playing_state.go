@@ -3,6 +3,7 @@ package state
 import (
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/player"
 	"mvvasilev/last_light/game/ui"
 	"mvvasilev/last_light/game/world"
 
@@ -11,8 +12,8 @@ import (
 )
 
 type PlayingState struct {
-	player  *model.Player
-	someNPC *model.NPC
+	player  *player.Player
+	someNPC *model.BasicNPC
 
 	dungeon *world.Dungeon
 
@@ -35,7 +36,7 @@ func BeginPlayingState() *PlayingState {
 
 	s.dungeon = world.CreateDungeon(mapSize.Width(), mapSize.Height(), 1)
 
-	s.player = model.CreatePlayer(s.dungeon.CurrentLevel().PlayerSpawnPoint().XY())
+	s.player = player.CreatePlayer(s.dungeon.CurrentLevel().PlayerSpawnPoint().XY())
 
 	s.someNPC = model.CreateNPC(s.dungeon.CurrentLevel().NextLevelStaircase())
 
@@ -172,10 +173,10 @@ func (ps *PlayingState) PickUpItemUnderPlayer() {
 		return
 	}
 
-	success := ps.player.Inventory().Push(*item)
+	success := ps.player.Inventory().Push(item)
 
 	if !success {
-		ps.dungeon.CurrentLevel().SetItemAt(pos.X(), pos.Y(), *item)
+		ps.dungeon.CurrentLevel().SetItemAt(pos.X(), pos.Y(), item)
 	}
 }
 
@@ -286,11 +287,29 @@ func (ps *PlayingState) OnTick(dt int64) GameState {
 
 func (ps *PlayingState) CollectDrawables() []engine.Drawable {
 	return engine.Multidraw(engine.CreateDrawingInstructions(func(v views.View) {
+		visibilityMap := engine.ComputeFOV(
+			func(x, y int) world.Tile {
+				ps.dungeon.CurrentLevel().Flatten().MarkExplored(x, y)
+
+				return ps.dungeon.CurrentLevel().TileAt(x, y)
+			},
+			func(x, y int) bool { return ps.dungeon.CurrentLevel().Flatten().IsInBounds(x, y) },
+			func(x, y int) bool { return ps.dungeon.CurrentLevel().Flatten().TileAt(x, y).Opaque() },
+			ps.player.Position().X(), ps.player.Position().Y(),
+			13,
+		)
+
 		ps.viewport.DrawFromProvider(v, func(x, y int) (rune, tcell.Style) {
-			tile := ps.dungeon.CurrentLevel().TileAt(x, y)
+			tile := visibilityMap[engine.PositionAt(x, y)]
 
 			if tile != nil {
 				return tile.Presentation()
+			}
+
+			explored := ps.dungeon.CurrentLevel().Flatten().ExploredTileAt(x, y)
+
+			if explored != nil {
+				return explored.Presentation()
 			}
 
 			return ' ', tcell.StyleDefault

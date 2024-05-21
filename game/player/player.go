@@ -1,7 +1,9 @@
-package model
+package player
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/item"
+	"mvvasilev/last_light/game/rpg"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
@@ -11,7 +13,9 @@ type Player struct {
 	id       uuid.UUID
 	position engine.Position
 
-	inventory *EquippedInventory
+	inventory *item.EquippedInventory
+
+	*rpg.BasicRPGEntity
 }
 
 func CreatePlayer(x, y int) *Player {
@@ -19,7 +23,8 @@ func CreatePlayer(x, y int) *Player {
 
 	p.id = uuid.New()
 	p.position = engine.PositionAt(x, y)
-	p.inventory = CreatePlayerInventory()
+	p.inventory = item.CreateEquippedInventory()
+	p.BasicRPGEntity = rpg.CreateBasicRPGEntity()
 
 	return p
 }
@@ -48,7 +53,7 @@ func (p *Player) Transparent() bool {
 	return false
 }
 
-func (p *Player) Inventory() *EquippedInventory {
+func (p *Player) Inventory() *item.EquippedInventory {
 	return p.inventory
 }
 

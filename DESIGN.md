@@ -1,7 +1,8 @@
 # Last Light
 
 - Roguelike RPG
-- Inventory System
+- ~~FOV with explored tiles greyed out~~
+- ~~Inventory System~~
 - Weapons & Armor
     - Head
     - Chest
@@ -11,6 +12,7 @@
     - Right Hand
 - Damage Types
     - Physical
+        - Unarmed
         - Slashing
         - Piercing
         - Bludgeoning
@@ -24,7 +26,7 @@
 - 9-level Dungeon
     - 4 types of dungeon levels:
         - Caverns ( Cellular Automata )
-        - Dungeon ( Maze w/ Rooms )
+        - ~~Dungeon ( Maze w/ Rooms )~~
         - Mine ( Broguelike )
         - Underground City ( Caverns + Dungeon combo )
 - Objective: Pick up the Last Light and bring it to its Altar ( Altar of the Last Light )

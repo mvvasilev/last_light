@@ -32,6 +32,18 @@ func (bsp *BSPDungeonMap) TileAt(x int, y int) Tile {
 	return bsp.level.TileAt(x, y)
 }
 
+func (bsp *BSPDungeonMap) IsInBounds(x, y int) bool {
+	return bsp.level.IsInBounds(x, y)
+}
+
+func (bsp *BSPDungeonMap) ExploredTileAt(x, y int) Tile {
+	return bsp.level.ExploredTileAt(x, y)
+}
+
+func (bsp *BSPDungeonMap) MarkExplored(x, y int) {
+	bsp.level.MarkExplored(x, y)
+}
+
 func (bsp *BSPDungeonMap) Tick(dt int64) {
 }
 

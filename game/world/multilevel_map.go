@@ -45,11 +45,7 @@ func (mm *MultilevelMap) SetTileAtHeight(x, y, height int, t Tile) {
 func (mm *MultilevelMap) CollectTilesAt(x, y int, filter func(t Tile) bool) []Tile {
 	tiles := make([]Tile, len(mm.layers))
 
-	if x < 0 || y < 0 {
-		return tiles
-	}
-
-	if x >= mm.Size().Width() || y >= mm.Size().Height() {
+	if !mm.IsInBounds(x, y) {
 		return tiles
 	}
 
@@ -66,11 +62,7 @@ func (mm *MultilevelMap) CollectTilesAt(x, y int, filter func(t Tile) bool) []Ti
 }
 
 func (mm *MultilevelMap) TileAt(x int, y int) Tile {
-	if x < 0 || y < 0 {
-		return CreateStaticTile(x, y, TileTypeVoid())
-	}
-
-	if x >= mm.Size().Width() || y >= mm.Size().Height() {
+	if !mm.IsInBounds(x, y) {
 		return CreateStaticTile(x, y, TileTypeVoid())
 	}
 
@@ -86,12 +78,38 @@ func (mm *MultilevelMap) TileAt(x int, y int) Tile {
 	return CreateStaticTile(x, y, TileTypeVoid())
 }
 
-func (mm *MultilevelMap) TileAtHeight(x, y, height int) Tile {
+func (mm *MultilevelMap) IsInBounds(x, y int) bool {
 	if x < 0 || y < 0 {
-		return CreateStaticTile(x, y, TileTypeVoid())
+		return false
 	}
 
 	if x >= mm.Size().Width() || y >= mm.Size().Height() {
+		return false
+	}
+
+	return true
+}
+
+func (mm *MultilevelMap) MarkExplored(x, y int) {
+	for _, m := range mm.layers {
+		m.MarkExplored(x, y)
+	}
+}
+
+func (mm *MultilevelMap) ExploredTileAt(x, y int) Tile {
+	for i := len(mm.layers) - 1; i >= 0; i-- {
+		tile := mm.layers[i].ExploredTileAt(x, y)
+
+		if tile != nil && !tile.Transparent() {
+			return tile
+		}
+	}
+
+	return CreateStaticTile(x, y, TileTypeVoid())
+}
+
+func (mm *MultilevelMap) TileAtHeight(x, y, height int) Tile {
+	if !mm.IsInBounds(x, y) {
 		return CreateStaticTile(x, y, TileTypeVoid())
 	}
 

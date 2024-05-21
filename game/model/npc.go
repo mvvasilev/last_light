@@ -7,28 +7,28 @@ import (
 	"github.com/google/uuid"
 )
 
-type NPC struct {
+type BasicNPC struct {
 	id uuid.UUID
 	engine.Positioned
 }
 
-func CreateNPC(pos engine.Position) *NPC {
-	return &NPC{
+func CreateNPC(pos engine.Position) *BasicNPC {
+	return &BasicNPC{
 		id:         uuid.New(),
 		Positioned: engine.WithPosition(pos),
 	}
 }
 
-func (c *NPC) MoveTo(newPosition engine.Position) {
+func (c *BasicNPC) MoveTo(newPosition engine.Position) {
 	c.Positioned.SetPosition(newPosition)
 }
 
-func (c *NPC) UniqueId() uuid.UUID {
+func (c *BasicNPC) UniqueId() uuid.UUID {
 	return c.id
 }
 
-func (c *NPC) Input(e *tcell.EventKey) {
+func (c *BasicNPC) Input(e *tcell.EventKey) {
 }
 
-func (c *NPC) Tick(dt int64) {
+func (c *BasicNPC) Tick(dt int64) {
 }

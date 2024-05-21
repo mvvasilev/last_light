@@ -3,6 +3,7 @@ package state
 import (
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/player"
 	"mvvasilev/last_light/game/ui/menu"
 
 	"github.com/gdamore/tcell/v2"
@@ -15,13 +16,13 @@ type InventoryScreenState struct {
 	inventoryMenu         *menu.PlayerInventoryMenu
 	selectedInventorySlot engine.Position
 
-	player *model.Player
+	player *player.Player
 
 	moveInventorySlotDirection model.Direction
 	dropSelectedInventorySlot  bool
 }
 
-func CreateInventoryScreenState(player *model.Player, prevState PausableState) *InventoryScreenState {
+func CreateInventoryScreenState(player *player.Player, prevState PausableState) *InventoryScreenState {
 	iss := new(InventoryScreenState)
 
 	iss.prevState = prevState

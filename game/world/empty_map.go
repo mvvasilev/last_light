@@ -18,6 +18,10 @@ func (edl *EmptyDungeonMap) TileAt(x int, y int) Tile {
 	return edl.level.TileAt(x, y)
 }
 
+func (edl *EmptyDungeonMap) IsInBounds(x, y int) bool {
+	return edl.level.IsInBounds(x, y)
+}
+
 func (edl *EmptyDungeonMap) Tick(dt int64) {
 
 }

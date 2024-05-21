@@ -3,7 +3,7 @@ package menu
 import (
 	"fmt"
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/item"
 	"mvvasilev/last_light/game/ui"
 
 	"github.com/gdamore/tcell/v2"
@@ -12,7 +12,7 @@ import (
 )
 
 type PlayerInventoryMenu struct {
-	inventory *model.EquippedInventory
+	inventory *item.EquippedInventory
 
 	inventoryMenu  *ui.UIWindow
 	armourLabel    *ui.UILabel
@@ -29,7 +29,7 @@ type PlayerInventoryMenu struct {
 	selectedInventorySlot engine.Position
 }
 
-func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventory, style tcell.Style, highlightStyle tcell.Style) *PlayerInventoryMenu {
+func CreatePlayerInventoryMenu(x, y int, playerInventory *item.EquippedInventory, style tcell.Style, highlightStyle tcell.Style) *PlayerInventoryMenu {
 	menu := new(PlayerInventoryMenu)
 
 	menu.inventory = playerInventory
@@ -124,8 +124,17 @@ func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventor
 			return
 		}
 
-		ui.CreateSingleLineUILabel(x+3, y+15, fmt.Sprintf("Name: %v", item.Name()), style).Draw(v)
-		ui.CreateSingleLineUILabel(x+3, y+16, fmt.Sprintf("Desc: %v", item.Description()), style).Draw(v)
+		name, nameStyle := item.Name()
+
+		ui.CreateSingleLineUILabel(x+3, y+15, name, nameStyle).Draw(v)
+
+		// |Stt:+00|Stt:+00|Stt:+00|Stt:+00|
+		// switch it := item.(type) {
+		// case rpg.RPGItem:
+		// 	//statModifiers := it.Modifiers()
+
+		// default:
+		// }
 	})
 
 	menu.help = ui.CreateSingleLineUILabel(x+2, y+22, "hjkl - move, x - drop, e - equip", style)

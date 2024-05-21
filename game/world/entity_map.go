@@ -111,6 +111,18 @@ func (em *EntityMap) TileAt(x int, y int) Tile {
 	return em.entities[key]
 }
 
+func (em *EntityMap) IsInBounds(x, y int) bool {
+	return em.FitsWithin(x, y)
+}
+
+func (em *EntityMap) MarkExplored(x, y int) {
+
+}
+
+func (em *EntityMap) ExploredTileAt(x, y int) Tile {
+	return CreateStaticTile(x, y, TileTypeVoid())
+}
+
 func (em *EntityMap) Tick(dt int64) {
 	for _, e := range em.entities {
 		e.Entity().Tick(dt)

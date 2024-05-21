@@ -3,7 +3,10 @@ package world
 import (
 	"math/rand"
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/item"
 	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/rpg"
+	"slices"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
@@ -104,12 +107,39 @@ type DungeonLevel struct {
 
 func CreateDungeonLevel(width, height int, dungeonType DungeonType) *DungeonLevel {
 
-	genTable := make(map[float32]*model.ItemType, 0)
+	genTable := rpg.CreateLootTable()
 
-	genTable[0.2] = model.ItemTypeFish()
-	genTable[0.05] = model.ItemTypeBow()
-	genTable[0.051] = model.ItemTypeLongsword()
-	genTable[0.052] = model.ItemTypeKey()
+	genTable.Add(10, func() item.Item {
+		return item.CreateBasicItem(item.ItemTypeFish(), 1)
+	})
+
+	genTable.Add(1, func() item.Item {
+		itemTypes := []rpg.RPGItemType{
+			rpg.ItemTypeBow(),
+			rpg.ItemTypeLongsword(),
+			rpg.ItemTypeClub(),
+			rpg.ItemTypeDagger(),
+			rpg.ItemTypeHandaxe(),
+			rpg.ItemTypeJavelin(),
+			rpg.ItemTypeLightHammer(),
+			rpg.ItemTypeMace(),
+			rpg.ItemTypeQuarterstaff(),
+			rpg.ItemTypeSickle(),
+			rpg.ItemTypeSpear(),
+		}
+
+		itemType := itemTypes[rand.Intn(len(itemTypes))]
+
+		rarities := []rpg.ItemRarity{
+			rpg.ItemRarity_Common,
+			rpg.ItemRarity_Uncommon,
+			rpg.ItemRarity_Rare,
+			rpg.ItemRarity_Epic,
+			rpg.ItemRarity_Legendary,
+		}
+
+		return rpg.GenerateItemOfTypeAndRarity(itemType, rarities[rand.Intn(len(rarities))])
+	})
 
 	var groundLevel interface {
 		Map
@@ -126,7 +156,7 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) *DungeonLeve
 		groundLevel = CreateBSPDungeonMap(width, height, 4)
 	}
 
-	items := SpawnItems(groundLevel.Rooms(), 0.01, genTable, []engine.Position{
+	items := SpawnItems(groundLevel.Rooms(), 0.02, genTable, []engine.Position{
 		groundLevel.NextLevelStaircasePosition(),
 		groundLevel.PlayerSpawnPoint(),
 		groundLevel.PreviousLevelStaircasePosition(),
@@ -157,6 +187,43 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) *DungeonLeve
 	return d
 }
 
+func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTable *rpg.LootTable, forbiddenPositions []engine.Position) []Tile {
+	rooms := spawnableAreas
+
+	itemTiles := make([]Tile, 0, 10)
+
+	for _, r := range rooms {
+		maxItems := int(maxItemRatio * float32(r.Size().Area()))
+
+		if maxItems < 1 {
+			continue
+		}
+
+		numItems := rand.Intn(maxItems)
+
+		for range numItems {
+			itemType := genTable.Generate()
+
+			if itemType == nil {
+				continue
+			}
+
+			pos := engine.PositionAt(
+				engine.RandInt(r.Position().X()+1, r.Position().X()+r.Size().Width()-1),
+				engine.RandInt(r.Position().Y()+1, r.Position().Y()+r.Size().Height()-1),
+			)
+
+			if slices.Contains(forbiddenPositions, pos) {
+				continue
+			}
+
+			itemTiles = append(itemTiles, CreateItemTile(pos, itemType))
+		}
+	}
+
+	return itemTiles
+}
+
 func (d *DungeonLevel) PlayerSpawnPoint() engine.Position {
 	return d.groundLevel.PlayerSpawnPoint()
 }
@@ -185,7 +252,7 @@ func (d *DungeonLevel) MoveEntityTo(uuid uuid.UUID, x, y int) {
 	d.entityLevel.MoveEntityTo(uuid, x, y)
 }
 
-func (d *DungeonLevel) RemoveItemAt(x, y int) *model.Item {
+func (d *DungeonLevel) RemoveItemAt(x, y int) item.Item {
 	if !d.groundLevel.Size().Contains(x, y) {
 		return nil
 	}
@@ -199,17 +266,15 @@ func (d *DungeonLevel) RemoveItemAt(x, y int) *model.Item {
 
 	d.itemLevel.SetTileAt(x, y, nil)
 
-	item := model.CreateItem(itemTile.Type(), itemTile.Quantity())
-
-	return &item
+	return itemTile.Item()
 }
 
-func (d *DungeonLevel) SetItemAt(x, y int, it model.Item) (success bool) {
+func (d *DungeonLevel) SetItemAt(x, y int, it item.Item) (success bool) {
 	if !d.TileAt(x, y).Passable() {
 		return false
 	}
 
-	d.itemLevel.SetTileAt(x, y, CreateItemTile(engine.PositionAt(x, y), it.Type(), it.Quantity()))
+	d.itemLevel.SetTileAt(x, y, CreateItemTile(engine.PositionAt(x, y), it))
 
 	return true
 }

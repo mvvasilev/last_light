@@ -3,6 +3,8 @@ package world
 import (
 	"math/rand"
 	"mvvasilev/last_light/engine"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 type splitDirection bool
@@ -92,7 +94,7 @@ func CreateBSPDungeonMap(width, height int, numSplits int) *BSPDungeonMap {
 	staircaseRoom := findRoom(root.right)
 
 	bsp.rooms = rooms
-	bsp.level = CreateBasicMap(tiles)
+	bsp.level = CreateBasicMap(tiles, tcell.StyleDefault.Foreground(tcell.ColorLightSlateGrey))
 
 	bsp.playerSpawnPoint = engine.PositionAt(
 		spawnRoom.Position().X()+spawnRoom.Size().Width()/2,
