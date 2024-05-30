@@ -2,6 +2,7 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/input"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
@@ -90,13 +91,13 @@ func (d *UIDialog) Size() engine.Size {
 	return d.window.Size()
 }
 
-func (d *UIDialog) Input(e *tcell.EventKey) {
-	if e.Key() == tcell.KeyLeft {
+func (d *UIDialog) Input(inputAction input.InputAction) {
+	if inputAction == input.InputAction_Menu_HighlightLeft {
 		if !d.yesBtn.IsHighlighted() {
 			d.noBtn.Unhighlight()
 			d.yesBtn.Highlight()
 		}
-	} else if e.Key() == tcell.KeyRight {
+	} else if inputAction == input.InputAction_Menu_HighlightRight {
 		if d.noBtn == nil {
 			return
 		}

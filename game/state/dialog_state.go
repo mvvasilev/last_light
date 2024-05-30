@@ -2,40 +2,38 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/input"
+	"mvvasilev/last_light/game/turns"
 	"mvvasilev/last_light/game/ui"
-
-	"github.com/gdamore/tcell/v2"
 )
 
 type DialogState struct {
+	inputSystem *input.InputSystem
+	turnSystem  *turns.TurnSystem
+
 	prevState GameState
 
 	dialog *ui.UIDialog
 
-	selectDialog          bool
 	returnToPreviousState bool
 }
 
-func CreateDialogState(dialog *ui.UIDialog, prevState GameState) *DialogState {
+func CreateDialogState(inputSystem *input.InputSystem, turnSystem *turns.TurnSystem, dialog *ui.UIDialog, prevState GameState) *DialogState {
 	return &DialogState{
+		inputSystem:           inputSystem,
+		turnSystem:            turnSystem,
 		prevState:             prevState,
 		dialog:                dialog,
 		returnToPreviousState: false,
 	}
 }
 
-func (ds *DialogState) OnInput(e *tcell.EventKey) {
-	if e.Key() == tcell.KeyEnter {
-		ds.selectDialog = true
-		return
-	}
-
-	ds.dialog.Input(e)
+func (s *DialogState) InputContext() input.Context {
+	return input.InputContext_Menu
 }
 
 func (ds *DialogState) OnTick(dt int64) GameState {
-	if ds.selectDialog {
-		ds.selectDialog = false
+	if ds.inputSystem.NextAction() == input.InputAction_Menu_Select {
 		ds.returnToPreviousState = true
 		ds.dialog.Select()
 	}

@@ -21,10 +21,10 @@ type BasicRPGEntity struct {
 	currentHealth int
 }
 
-func CreateBasicRPGEntity() *BasicRPGEntity {
+func CreateBasicRPGEntity(baseStats map[Stat]int, statModifiers map[Stat][]StatModifier) *BasicRPGEntity {
 	return &BasicRPGEntity{
-		stats:         make(map[Stat]int, 0),
-		statModifiers: make(map[Stat][]StatModifier, 0),
+		stats:         baseStats,
+		statModifiers: statModifiers,
 		currentHealth: 0,
 	}
 }
@@ -60,7 +60,7 @@ func (brpg *BasicRPGEntity) AddStatModifier(modifier StatModifier) {
 }
 
 func (brpg *BasicRPGEntity) RemoveStatModifier(id StatModifierId) {
-
+	// TODO
 }
 
 func (brpg *BasicRPGEntity) CurrentHealth() int {

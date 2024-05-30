@@ -2,8 +2,11 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/input"
+	"mvvasilev/last_light/game/npc"
 	"mvvasilev/last_light/game/player"
+	"mvvasilev/last_light/game/rpg"
+	"mvvasilev/last_light/game/turns"
 	"mvvasilev/last_light/game/ui"
 	"mvvasilev/last_light/game/world"
 
@@ -12,33 +15,88 @@ import (
 )
 
 type PlayingState struct {
+	turnSystem  *turns.TurnSystem
+	inputSystem *input.InputSystem
+
 	player  *player.Player
-	someNPC *model.BasicNPC
+	someNPC *npc.BasicNPC
+
+	eventLog   *engine.GameEventLog
+	uiEventLog *ui.UIEventLog
+
+	healthBar *ui.UIHealthBar
 
 	dungeon *world.Dungeon
 
 	viewport *engine.Viewport
 
-	movePlayerDirection model.Direction
-	pauseGame           bool
-	openInventory       bool
-	pickUpUnderPlayer   bool
-	interact            bool
-	moveEntities        bool
+	viewShortLogs bool
 
 	nextGameState GameState
 }
 
-func BeginPlayingState() *PlayingState {
+func CreatePlayingState(turnSystem *turns.TurnSystem, inputSystem *input.InputSystem) *PlayingState {
+	turnSystem.Clear()
+
 	s := new(PlayingState)
+
+	s.turnSystem = turnSystem
+	s.inputSystem = inputSystem
 
 	mapSize := engine.SizeOf(128, 128)
 
 	s.dungeon = world.CreateDungeon(mapSize.Width(), mapSize.Height(), 1)
 
 	s.player = player.CreatePlayer(s.dungeon.CurrentLevel().PlayerSpawnPoint().XY())
+	s.player.Heal(rpg.BaseMaxHealth(s.player))
 
-	s.someNPC = model.CreateNPC(s.dungeon.CurrentLevel().NextLevelStaircase())
+	s.turnSystem.Schedule(10, func() (complete bool, requeue bool) {
+		requeue = true
+		complete = false
+
+		switch inputSystem.NextAction() {
+		case input.InputAction_PauseGame:
+			s.nextGameState = PauseGame(s, s.turnSystem, s.inputSystem)
+		case input.InputAction_OpenInventory:
+			s.nextGameState = CreateInventoryScreenState(s.inputSystem, s.turnSystem, s.player, s)
+		case input.InputAction_PickUpItem:
+			s.PickUpItemUnderPlayer()
+			complete = true
+		case input.InputAction_Interact:
+			s.InteractBelowPlayer()
+			complete = true
+		case input.InputAction_OpenLogs:
+			s.viewShortLogs = !s.viewShortLogs
+		case input.InputAction_MovePlayer_East:
+			s.MovePlayer(npc.East)
+			complete = true
+		case input.InputAction_MovePlayer_West:
+			s.MovePlayer(npc.West)
+			complete = true
+		case input.InputAction_MovePlayer_North:
+			s.MovePlayer(npc.North)
+			complete = true
+		case input.InputAction_MovePlayer_South:
+			s.MovePlayer(npc.South)
+			complete = true
+		default:
+		}
+
+		return
+	})
+
+	s.someNPC = npc.CreateNPC(s.dungeon.CurrentLevel().NextLevelStaircase())
+
+	s.turnSystem.Schedule(20, func() (complete bool, requeue bool) {
+		s.CalcPathToPlayerAndMove()
+
+		return true, true
+	})
+
+	s.eventLog = engine.CreateGameEventLog(100)
+
+	s.uiEventLog = ui.CreateUIEventLog(0, 17, 80, 7, s.eventLog, tcell.StyleDefault)
+	s.healthBar = ui.CreateHealthBar(68, 0, 12, 3, s.player.CurrentHealth(), rpg.BaseMaxHealth(s.player), tcell.StyleDefault)
 
 	s.dungeon.CurrentLevel().AddEntity(s.player, '@', tcell.StyleDefault)
 	s.dungeon.CurrentLevel().AddEntity(s.someNPC, 'N', tcell.StyleDefault)
@@ -55,32 +113,24 @@ func BeginPlayingState() *PlayingState {
 	return s
 }
 
-func (ps *PlayingState) Pause() {
-	ps.pauseGame = true
+func (s *PlayingState) InputContext() input.Context {
+	return input.InputContext_Play
 }
 
-func (ps *PlayingState) Unpause() {
-	ps.pauseGame = false
-}
-
-func (ps *PlayingState) SetPaused(paused bool) {
-	ps.pauseGame = paused
-}
-
-func (ps *PlayingState) MovePlayer() {
-	if ps.movePlayerDirection == model.DirectionNone {
+func (ps *PlayingState) MovePlayer(direction npc.Direction) {
+	if direction == npc.DirectionNone {
 		return
 	}
 
-	newPlayerPos := ps.player.Position().WithOffset(model.MovementDirectionOffset(ps.movePlayerDirection))
+	newPlayerPos := ps.player.Position().WithOffset(npc.MovementDirectionOffset(direction))
 
 	if ps.dungeon.CurrentLevel().IsTilePassable(newPlayerPos.XY()) {
-		dx, dy := model.MovementDirectionOffset(ps.movePlayerDirection)
+		dx, dy := npc.MovementDirectionOffset(direction)
 		ps.dungeon.CurrentLevel().MoveEntity(ps.player.UniqueId(), dx, dy)
 		ps.viewport.SetCenter(ps.player.Position())
 	}
 
-	ps.movePlayerDirection = model.DirectionNone
+	ps.eventLog.Log("You moved " + npc.DirectionName(direction))
 }
 
 func (ps *PlayingState) InteractBelowPlayer() {
@@ -100,6 +150,8 @@ func (ps *PlayingState) InteractBelowPlayer() {
 func (ps *PlayingState) SwitchToNextLevel() {
 	if !ps.dungeon.HasNextLevel() {
 		ps.nextGameState = CreateDialogState(
+			ps.inputSystem,
+			ps.turnSystem,
 			ui.CreateOkDialog(
 				"The Unknown Depths",
 				"The staircases descent down to the lower levels is seemingly blocked by multiple large boulders. They appear immovable.",
@@ -134,6 +186,8 @@ func (ps *PlayingState) SwitchToNextLevel() {
 func (ps *PlayingState) SwitchToPreviousLevel() {
 	if !ps.dungeon.HasPreviousLevel() {
 		ps.nextGameState = CreateDialogState(
+			ps.inputSystem,
+			ps.turnSystem,
 			ui.CreateOkDialog(
 				"The Surface",
 				"You feel the gentle, yet chilling breeze of the surface make its way through the weaving cavern tunnels, the very same you had to make your way through to get where you are. There is nothing above that you need. Find the last light, or die trying.",
@@ -177,13 +231,59 @@ func (ps *PlayingState) PickUpItemUnderPlayer() {
 
 	if !success {
 		ps.dungeon.CurrentLevel().SetItemAt(pos.X(), pos.Y(), item)
+		return
 	}
+
+	itemName, _ := item.Name()
+
+	ps.eventLog.Log("You picked up " + itemName)
+}
+
+func (ps *PlayingState) HasLineOfSight(start, end engine.Position) bool {
+	positions := engine.CastRay(start, end)
+
+	for _, p := range positions {
+		if ps.dungeon.CurrentLevel().IsGroundTileOpaque(p.XY()) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (ps *PlayingState) CalcPathToPlayerAndMove() {
-	distanceToPlayer := ps.someNPC.Position().Distance(ps.player.Position())
+	playerVisibleAndInRange := false
 
-	if distanceToPlayer > 20 {
+	if ps.someNPC.Position().Distance(ps.player.Position()) < 20 && ps.HasLineOfSight(ps.someNPC.Position(), ps.player.Position()) {
+		playerVisibleAndInRange = true
+	}
+
+	if !playerVisibleAndInRange {
+		randomMove := npc.Direction(engine.RandInt(int(npc.DirectionNone), int(npc.East)))
+
+		nextPos := ps.someNPC.Position()
+
+		switch randomMove {
+		case npc.North:
+			nextPos = nextPos.WithOffset(0, -1)
+		case npc.South:
+			nextPos = nextPos.WithOffset(0, +1)
+		case npc.West:
+			nextPos = nextPos.WithOffset(-1, 0)
+		case npc.East:
+			nextPos = nextPos.WithOffset(+1, 0)
+		default:
+			return
+		}
+
+		if ps.dungeon.CurrentLevel().IsTilePassable(nextPos.XY()) {
+			ps.dungeon.CurrentLevel().MoveEntityTo(
+				ps.someNPC.UniqueId(),
+				nextPos.X(),
+				nextPos.Y(),
+			)
+		}
+
 		return
 	}
 
@@ -212,81 +312,16 @@ func (ps *PlayingState) CalcPathToPlayerAndMove() {
 	ps.dungeon.CurrentLevel().MoveEntityTo(ps.someNPC.UniqueId(), nextPos.X(), nextPos.Y())
 }
 
-func (ps *PlayingState) OnInput(e *tcell.EventKey) {
-	ps.player.Input(e)
+func (ps *PlayingState) OnTick(dt int64) (nextState GameState) {
+	ps.nextGameState = ps
 
-	if e.Key() == tcell.KeyEsc {
-		ps.pauseGame = true
-		return
-	}
-
-	if e.Key() == tcell.KeyRune && e.Rune() == 'i' {
-		ps.openInventory = true
-		return
-	}
-
-	if e.Key() == tcell.KeyRune && e.Rune() == 'p' {
-		ps.pickUpUnderPlayer = true
-		return
-	}
-
-	if e.Key() == tcell.KeyRune && e.Rune() == 'e' {
-		ps.interact = true
-		return
-	}
-
-	switch e.Key() {
-	case tcell.KeyUp:
-		ps.movePlayerDirection = model.DirectionUp
-		ps.moveEntities = true
-	case tcell.KeyDown:
-		ps.movePlayerDirection = model.DirectionDown
-		ps.moveEntities = true
-	case tcell.KeyLeft:
-		ps.movePlayerDirection = model.DirectionLeft
-		ps.moveEntities = true
-	case tcell.KeyRight:
-		ps.movePlayerDirection = model.DirectionRight
-		ps.moveEntities = true
-	}
-}
-
-func (ps *PlayingState) OnTick(dt int64) GameState {
-	ps.player.Tick(dt)
-
-	if ps.pauseGame {
-		return PauseGame(ps)
-	}
-
-	if ps.openInventory {
-		ps.openInventory = false
-		return CreateInventoryScreenState(ps.player, ps)
-	}
-
-	if ps.movePlayerDirection != model.DirectionNone {
-		ps.MovePlayer()
-	}
-
-	if ps.pickUpUnderPlayer {
-		ps.pickUpUnderPlayer = false
-		ps.PickUpItemUnderPlayer()
-	}
-
-	if ps.interact {
-		ps.interact = false
-		ps.InteractBelowPlayer()
-	}
-
-	if ps.moveEntities {
-		ps.moveEntities = false
-		ps.CalcPathToPlayerAndMove()
-	}
+	ps.turnSystem.NextTurn()
 
 	return ps.nextGameState
 }
 
 func (ps *PlayingState) CollectDrawables() []engine.Drawable {
-	return engine.Multidraw(engine.CreateDrawingInstructions(func(v views.View) {
+	mainCameraDrawingInstructions := engine.CreateDrawingInstructions(func(v views.View) {
 		visibilityMap := engine.ComputeFOV(
 			func(x, y int) world.Tile {
 				ps.dungeon.CurrentLevel().Flatten().MarkExplored(x, y)
@@ -314,5 +349,17 @@ func (ps *PlayingState) CollectDrawables() []engine.Drawable {
 
 			return ' ', tcell.StyleDefault
 		})
-	}))
+	})
+
+	drawables := []engine.Drawable{}
+
+	drawables = append(drawables, mainCameraDrawingInstructions)
+
+	if ps.viewShortLogs {
+		drawables = append(drawables, ps.uiEventLog)
+	}
+
+	drawables = append(drawables, ps.healthBar)
+
+	return drawables
 }

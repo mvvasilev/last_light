@@ -109,3 +109,15 @@ func (t *Text) Draw(s views.View) {
 		currentHPos += runeCount + 1 // add +1 to account for space after word
 	}
 }
+
+func DrawText(x, y int, content string, style tcell.Style, s views.View) {
+	currentHPos := 0
+	currentVPos := 0
+
+	lastPos := 0
+
+	for _, r := range content {
+		s.SetContent(x+currentHPos+lastPos, y+currentVPos, r, nil, style)
+		lastPos++
+	}
+}

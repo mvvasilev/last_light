@@ -4,10 +4,17 @@ import (
 	"math/rand"
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/item"
+	"slices"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
 )
+
+// TODO: figure out event logging. Need to inform the player of the things that are happening...
+
+const MaxNumberOfModifiers = 6
 
 type ItemSupplier func() item.Item
 
@@ -58,34 +65,89 @@ func pointPerRarity(rarity ItemRarity) int {
 	}
 }
 
+func generateUniqueItemName() string {
+	starts := []string{
+		"du", "nol", "ma", "re",
+		"ka", "gro", "hru", "lo",
+		"ara", "ke", "ko", "uro",
+		"ne", "pe", "pa", "pho",
+	}
+
+	middles := []string{
+		"kora", "duru", "kolku", "dila",
+		"luio", "ghro", "kelma", "riga",
+		"fela", "fiya", "numa", "ruta",
+	}
+
+	end := []string{
+		"dum", "dor", "dar", "thar",
+		"thor", "thum", "hor", "hum",
+		"her", "kom", "kur", "kyr",
+		"mor", "mar", "man", "kum",
+		"tum",
+	}
+
+	name := starts[rand.Intn(len(starts))] + middles[rand.Intn(len(middles))] + end[rand.Intn(len(end))]
+
+	r, size := utf8.DecodeRuneInString(name)
+
+	return string(unicode.ToUpper(r)) + name[size:]
+}
+
+func randomAdjective() string {
+	adjectives := []string{
+		"shiny", "gruesome", "sharp", "tattered",
+		"mediocre", "unusual", "bright", "rusty",
+		"dreadful", "exceptional", "old", "bent",
+		"ancient", "crude", "dented", "cool",
+	}
+
+	adj := adjectives[rand.Intn(len(adjectives))]
+
+	r, size := utf8.DecodeRuneInString(adj)
+
+	return string(unicode.ToUpper(r)) + adj[size:]
+}
+
+func randomSuffix() string {
+	suffixes := []string{
+		"of the Monkey", "of the Tiger", "of the Elephant", "of the Slug",
+		"of Elven Make",
+	}
+
+	return suffixes[rand.Intn(len(suffixes))]
+}
+
 func generateItemName(itemType RPGItemType, rarity ItemRarity) (string, tcell.Style) {
 	switch rarity {
 	case ItemRarity_Common:
 		return itemType.Name(), tcell.StyleDefault
 	case ItemRarity_Uncommon:
-		return itemType.Name(), tcell.StyleDefault.Foreground(tcell.ColorLime)
+		return randomAdjective() + " " + itemType.Name(), tcell.StyleDefault.Foreground(tcell.ColorLime)
 	case ItemRarity_Rare:
-		return itemType.Name(), tcell.StyleDefault.Foreground(tcell.ColorBlue)
+		return itemType.Name() + " " + randomSuffix(), tcell.StyleDefault.Foreground(tcell.ColorBlue)
 	case ItemRarity_Epic:
-		return itemType.Name(), tcell.StyleDefault.Foreground(tcell.ColorPurple)
+		return randomAdjective() + " " + itemType.Name() + " " + randomSuffix(), tcell.StyleDefault.Foreground(tcell.ColorPurple)
 	case ItemRarity_Legendary:
-		return itemType.Name(), tcell.StyleDefault.Foreground(tcell.ColorOrange).Attributes(tcell.AttrBold)
+		return generateUniqueItemName() + ", Legendary " + itemType.Name(), tcell.StyleDefault.Foreground(tcell.ColorOrange).Attributes(tcell.AttrBold)
 	default:
 		return itemType.Name(), tcell.StyleDefault
 	}
 }
 
-func randomStat() Stat {
-	stats := []Stat{
+func randomStat(metaItemTypes []RPGItemMetaType) Stat {
+	stats := make(map[RPGItemMetaType][]Stat, 0)
+
+	stats[MetaItemType_Weapon] = []Stat{
 		Stat_Attributes_Strength,
 		Stat_Attributes_Dexterity,
 		Stat_Attributes_Intelligence,
 		Stat_Attributes_Constitution,
-		Stat_PhysicalPrecisionBonus,
-		Stat_EvasionBonus,
-		Stat_MagicPrecisionBonus,
 		Stat_TotalPrecisionBonus,
-		Stat_DamageBonus_Physical_Unarmed,
+	}
+
+	stats[MetaItemType_Physical_Weapon] = []Stat{
+		Stat_PhysicalPrecisionBonus,
 		Stat_DamageBonus_Physical_Slashing,
 		Stat_DamageBonus_Physical_Piercing,
 		Stat_DamageBonus_Physical_Bludgeoning,
@@ -95,37 +157,102 @@ func randomStat() Stat {
 		Stat_DamageBonus_Magic_Thunder,
 		Stat_DamageBonus_Magic_Acid,
 		Stat_DamageBonus_Magic_Poison,
+	}
+
+	stats[MetaItemType_Magic_Weapon] = []Stat{
+		Stat_MagicPrecisionBonus,
+		Stat_DamageBonus_Magic_Fire,
+		Stat_DamageBonus_Magic_Cold,
+		Stat_DamageBonus_Magic_Necrotic,
+		Stat_DamageBonus_Magic_Thunder,
+		Stat_DamageBonus_Magic_Acid,
+		Stat_DamageBonus_Magic_Poison,
+	}
+
+	stats[MetaItemType_Armour] = []Stat{
+		Stat_EvasionBonus,
+		Stat_DamageBonus_Physical_Unarmed,
 		Stat_MaxHealthBonus,
 	}
 
-	return stats[rand.Intn(len(stats))]
+	stats[MetaItemType_Magic_Armour] = []Stat{
+		Stat_MagicPrecisionBonus,
+		Stat_DamageBonus_Magic_Fire,
+		Stat_DamageBonus_Magic_Cold,
+		Stat_DamageBonus_Magic_Necrotic,
+		Stat_DamageBonus_Magic_Thunder,
+		Stat_DamageBonus_Magic_Acid,
+		Stat_DamageBonus_Magic_Poison,
+	}
+
+	stats[MetaItemType_Physical_Armour] = []Stat{
+		Stat_PhysicalPrecisionBonus,
+		Stat_DamageBonus_Physical_Slashing,
+		Stat_DamageBonus_Physical_Piercing,
+		Stat_DamageBonus_Physical_Bludgeoning,
+	}
+
+	possibleStats := make([]Stat, 0, 10)
+
+	for _, mt := range metaItemTypes {
+		possibleStats = append(possibleStats, stats[mt]...)
+	}
+
+	return slices.Compact(possibleStats)[rand.Intn(len(stats))]
 }
 
-func generateItemStatModifiers(rarity ItemRarity) []StatModifier {
+func generateItemStatModifiers(itemType RPGItemType, rarity ItemRarity) []StatModifier {
 	points := pointPerRarity(rarity)
-	modifiers := []StatModifier{}
+	modifiers := make(map[Stat]*StatModifier, 0)
 
 	for {
-		if points <= 0 {
+		// If no points remain, or if the number of modifiers on the item reaches the maximum
+		if points <= 0 || len(modifiers) == MaxNumberOfModifiers {
 			break
 		}
 
-		modAmount := engine.RandInt(-points/2, points)
+		// Random chance to increase or decrease a stat
+		modAmount := engine.RandInt(-points, points)
 
 		if modAmount == 0 {
 			continue
 		}
 
-		modifiers = append(modifiers, StatModifier{
-			Id:    StatModifierId(uuid.New().String()),
-			Stat:  randomStat(),
-			Bonus: modAmount,
-		})
+		stat := randomStat(itemType.MetaTypes())
 
-		points -= modAmount
+		existingForStat := modifiers[stat]
+
+		// If this stat modifier already exists on the item, add the new modification amount to the old
+		if existingForStat != nil {
+			existingForStat.Bonus += modAmount
+
+			// If the added amount is 0, remove the modifier
+			if existingForStat.Bonus == 0 {
+				delete(modifiers, stat)
+			} else {
+				modifiers[stat] = existingForStat
+			}
+
+		} else {
+			// Otherwise, append a new stat modifier
+			modifiers[stat] = &StatModifier{
+				Id:    StatModifierId(uuid.New().String()),
+				Stat:  stat,
+				Bonus: modAmount,
+			}
+		}
+
+		// Decrease amount of points left by absolute value
+		points -= engine.AbsInt(modAmount)
 	}
 
-	return modifiers
+	vals := make([]StatModifier, 0, len(modifiers))
+
+	for _, v := range modifiers {
+		vals = append(vals, *v)
+	}
+
+	return vals
 }
 
 // Each rarity gets an amount of generation points, the higher the rarity, the more points
@@ -138,6 +265,6 @@ func GenerateItemOfTypeAndRarity(itemType RPGItemType, rarity ItemRarity) RPGIte
 		name,
 		style,
 		itemType,
-		generateItemStatModifiers(rarity),
+		generateItemStatModifiers(itemType, rarity),
 	)
 }

@@ -160,9 +160,9 @@ func StatValue(entity RPGEntity, stat Stat) int {
 }
 
 // Base Max Health is determined from constitution:
-// Constitution + Max Health Bonus + 10
+// 5*Constitution + Max Health Bonus
 func BaseMaxHealth(entity RPGEntity) int {
-	return StatValue(entity, Stat_Attributes_Constitution) + StatValue(entity, Stat_MaxHealthBonus) + 10
+	return 5*StatValue(entity, Stat_Attributes_Constitution) + StatValue(entity, Stat_MaxHealthBonus)
 }
 
 // Dexterity + Evasion bonus + luck roll
@@ -191,18 +191,6 @@ func PhysicalHitRoll(attacker RPGEntity, victim RPGEntity) bool {
 }
 
 func hitRoll(evasionRoll, precisionRoll int) bool {
-	if evasionRoll == 20 && precisionRoll == 20 {
-		return true
-	}
-
-	if evasionRoll == 20 {
-		return false
-	}
-
-	if precisionRoll == 20 {
-		return true
-	}
-
 	return evasionRoll < precisionRoll
 }
 

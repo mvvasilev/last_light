@@ -2,29 +2,32 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/input"
 	"mvvasilev/last_light/game/player"
+	"mvvasilev/last_light/game/turns"
 	"mvvasilev/last_light/game/ui/menu"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type InventoryScreenState struct {
-	prevState PausableState
+	inputSystem *input.InputSystem
+	turnSystem  *turns.TurnSystem
+
+	prevState GameState
 	exitMenu  bool
 
 	inventoryMenu         *menu.PlayerInventoryMenu
 	selectedInventorySlot engine.Position
 
 	player *player.Player
-
-	moveInventorySlotDirection model.Direction
-	dropSelectedInventorySlot  bool
 }
 
-func CreateInventoryScreenState(player *player.Player, prevState PausableState) *InventoryScreenState {
+func CreateInventoryScreenState(inputSystem *input.InputSystem, turnSystem *turns.TurnSystem, player *player.Player, prevState GameState) *InventoryScreenState {
 	iss := new(InventoryScreenState)
 
+	iss.inputSystem = inputSystem
+	iss.turnSystem = turnSystem
 	iss.prevState = prevState
 	iss.player = player
 	iss.selectedInventorySlot = engine.PositionAt(0, 0)
@@ -34,76 +37,50 @@ func CreateInventoryScreenState(player *player.Player, prevState PausableState) 
 	return iss
 }
 
-func (iss *InventoryScreenState) OnInput(e *tcell.EventKey) {
-	if e.Key() == tcell.KeyEsc || (e.Key() == tcell.KeyRune && e.Rune() == 'i') {
-		iss.exitMenu = true
-	}
-
-	if e.Key() == tcell.KeyRune && e.Rune() == 'x' {
-		iss.dropSelectedInventorySlot = true
-	}
-
-	if e.Key() != tcell.KeyRune {
-		return
-	}
-
-	switch e.Rune() {
-	case 'k':
-		iss.moveInventorySlotDirection = model.DirectionUp
-	case 'j':
-		iss.moveInventorySlotDirection = model.DirectionDown
-	case 'h':
-		iss.moveInventorySlotDirection = model.DirectionLeft
-	case 'l':
-		iss.moveInventorySlotDirection = model.DirectionRight
-	}
+func (s *InventoryScreenState) InputContext() input.Context {
+	return input.InputContext_Inventory
 }
 
-func (iss *InventoryScreenState) OnTick(dt int64) GameState {
-	if iss.exitMenu {
-		iss.prevState.Unpause()
-		return iss.prevState
-	}
+func (iss *InventoryScreenState) OnTick(dt int64) (nextState GameState) {
+	nextAction := iss.inputSystem.NextAction()
+	nextState = iss
 
-	if iss.dropSelectedInventorySlot {
+	switch nextAction {
+	case input.InputAction_Menu_Exit:
+		nextState = iss.prevState
+	case input.InputAction_DropItem:
 		iss.player.Inventory().Drop(iss.selectedInventorySlot.XY())
-		iss.dropSelectedInventorySlot = false
-	}
-
-	if iss.moveInventorySlotDirection != model.DirectionNone {
-
-		switch iss.moveInventorySlotDirection {
-		case model.DirectionUp:
-			if iss.selectedInventorySlot.Y() == 0 {
-				break
-			}
-
-			iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(0, -1)
-		case model.DirectionDown:
-			if iss.selectedInventorySlot.Y() == iss.player.Inventory().Shape().Height()-1 {
-				break
-			}
-
-			iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(0, +1)
-		case model.DirectionLeft:
-			if iss.selectedInventorySlot.X() == 0 {
-				break
-			}
-
-			iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(-1, 0)
-		case model.DirectionRight:
-			if iss.selectedInventorySlot.X() == iss.player.Inventory().Shape().Width()-1 {
-				break
-			}
-
-			iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(+1, 0)
+	case input.InputAction_Menu_HighlightUp:
+		if iss.selectedInventorySlot.Y() == 0 {
+			break
 		}
 
+		iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(0, -1)
 		iss.inventoryMenu.SelectSlot(iss.selectedInventorySlot.XY())
-		iss.moveInventorySlotDirection = model.DirectionNone
+	case input.InputAction_Menu_HighlightDown:
+		if iss.selectedInventorySlot.Y() == iss.player.Inventory().Shape().Height()-1 {
+			break
+		}
+
+		iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(0, +1)
+		iss.inventoryMenu.SelectSlot(iss.selectedInventorySlot.XY())
+	case input.InputAction_Menu_HighlightLeft:
+		if iss.selectedInventorySlot.X() == 0 {
+			break
+		}
+
+		iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(-1, 0)
+		iss.inventoryMenu.SelectSlot(iss.selectedInventorySlot.XY())
+	case input.InputAction_Menu_HighlightRight:
+		if iss.selectedInventorySlot.X() == iss.player.Inventory().Shape().Width()-1 {
+			break
+		}
+
+		iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(+1, 0)
+		iss.inventoryMenu.SelectSlot(iss.selectedInventorySlot.XY())
 	}
 
-	return iss
+	return
 }
 
 func (iss *InventoryScreenState) CollectDrawables() []engine.Drawable {

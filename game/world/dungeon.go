@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/item"
-	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/npc"
 	"mvvasilev/last_light/game/rpg"
 	"slices"
 
@@ -113,21 +113,21 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) *DungeonLeve
 		return item.CreateBasicItem(item.ItemTypeFish(), 1)
 	})
 
-	genTable.Add(1, func() item.Item {
-		itemTypes := []rpg.RPGItemType{
-			rpg.ItemTypeBow(),
-			rpg.ItemTypeLongsword(),
-			rpg.ItemTypeClub(),
-			rpg.ItemTypeDagger(),
-			rpg.ItemTypeHandaxe(),
-			rpg.ItemTypeJavelin(),
-			rpg.ItemTypeLightHammer(),
-			rpg.ItemTypeMace(),
-			rpg.ItemTypeQuarterstaff(),
-			rpg.ItemTypeSickle(),
-			rpg.ItemTypeSpear(),
-		}
+	itemTypes := []rpg.RPGItemType{
+		rpg.ItemTypeBow(),
+		rpg.ItemTypeLongsword(),
+		rpg.ItemTypeClub(),
+		rpg.ItemTypeDagger(),
+		rpg.ItemTypeHandaxe(),
+		rpg.ItemTypeJavelin(),
+		rpg.ItemTypeLightHammer(),
+		rpg.ItemTypeMace(),
+		rpg.ItemTypeQuarterstaff(),
+		rpg.ItemTypeSickle(),
+		rpg.ItemTypeSpear(),
+	}
 
+	genTable.Add(1, func() item.Item {
 		itemType := itemTypes[rand.Intn(len(itemTypes))]
 
 		rarities := []rpg.ItemRarity{
@@ -156,7 +156,7 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) *DungeonLeve
 		groundLevel = CreateBSPDungeonMap(width, height, 4)
 	}
 
-	items := SpawnItems(groundLevel.Rooms(), 0.02, genTable, []engine.Position{
+	items := SpawnItems(groundLevel.Rooms(), 0.1, genTable, []engine.Position{
 		groundLevel.NextLevelStaircasePosition(),
 		groundLevel.PlayerSpawnPoint(),
 		groundLevel.PreviousLevelStaircasePosition(),
@@ -202,9 +202,9 @@ func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTa
 		numItems := rand.Intn(maxItems)
 
 		for range numItems {
-			itemType := genTable.Generate()
+			item := genTable.Generate()
 
-			if itemType == nil {
+			if item == nil {
 				continue
 			}
 
@@ -217,7 +217,7 @@ func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTa
 				continue
 			}
 
-			itemTiles = append(itemTiles, CreateItemTile(pos, itemType))
+			itemTiles = append(itemTiles, CreateItemTile(pos, item))
 		}
 	}
 
@@ -240,7 +240,7 @@ func (d *DungeonLevel) DropEntity(uuid uuid.UUID) {
 	d.entityLevel.DropEntity(uuid)
 }
 
-func (d *DungeonLevel) AddEntity(entity model.MovableEntity, presentation rune, style tcell.Style) {
+func (d *DungeonLevel) AddEntity(entity npc.MovableEntity, presentation rune, style tcell.Style) {
 	d.entityLevel.AddEntity(entity, presentation, style)
 }
 
@@ -289,6 +289,14 @@ func (d *DungeonLevel) IsTilePassable(x, y int) bool {
 	}
 
 	return d.TileAt(x, y).Passable()
+}
+
+func (d *DungeonLevel) IsGroundTileOpaque(x, y int) bool {
+	if !d.groundLevel.Size().Contains(x, y) {
+		return false
+	}
+
+	return d.TileAt(x, y).Opaque()
 }
 
 func (d *DungeonLevel) Flatten() Map {

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/input"
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
@@ -52,4 +53,4 @@ func (t *UILabel) Draw(v views.View) {
 	t.text.Draw(v)
 }
 
-func (t *UILabel) Input(e *tcell.EventKey) {}
+func (t *UILabel) Input(inputAction input.InputAction) {}

@@ -3,7 +3,9 @@ package menu
 import (
 	"fmt"
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/input"
 	"mvvasilev/last_light/game/item"
+	"mvvasilev/last_light/game/rpg"
 	"mvvasilev/last_light/game/ui"
 
 	"github.com/gdamore/tcell/v2"
@@ -116,25 +118,18 @@ func CreatePlayerInventoryMenu(x, y int, playerInventory *item.EquippedInventory
 	})
 
 	menu.selectedItem = engine.CreateDrawingInstructions(func(v views.View) {
-		ui.CreateWindow(x+2, y+14, 33, 8, "ITEM", style).Draw(v)
-
 		item := playerInventory.ItemAt(menu.selectedInventorySlot.XY())
 
 		if item == nil {
 			return
 		}
 
-		name, nameStyle := item.Name()
-
-		ui.CreateSingleLineUILabel(x+3, y+15, name, nameStyle).Draw(v)
-
-		// |Stt:+00|Stt:+00|Stt:+00|Stt:+00|
-		// switch it := item.(type) {
-		// case rpg.RPGItem:
-		// 	//statModifiers := it.Modifiers()
-
-		// default:
-		// }
+		switch it := item.(type) {
+		case rpg.RPGItem:
+			ui.CreateUIRPGItem(x+2, y+14, it, style).Draw(v)
+		default:
+			ui.CreateUIBasicItem(x+2, y+14, it, style).Draw(v)
+		}
 	})
 
 	menu.help = ui.CreateSingleLineUILabel(x+2, y+22, "hjkl - move, x - drop, e - equip", style)
@@ -154,7 +149,7 @@ func (pim *PlayerInventoryMenu) Size() engine.Size {
 	return pim.inventoryMenu.Size()
 }
 
-func (pim *PlayerInventoryMenu) Input(e *tcell.EventKey) {
+func (pim *PlayerInventoryMenu) Input(inputAction input.InputAction) {
 
 }
 
@@ -163,6 +158,10 @@ func (pim *PlayerInventoryMenu) UniqueId() uuid.UUID {
 }
 
 func (pim *PlayerInventoryMenu) SelectSlot(x, y int) {
+	if pim.selectedInventorySlot.X() == x && pim.selectedInventorySlot.Y() == y {
+		return
+	}
+
 	pim.inventoryGrid.Unhighlight()
 	pim.selectedInventorySlot = engine.PositionAt(x, y)
 	pim.inventoryGrid.Highlight(pim.selectedInventorySlot)

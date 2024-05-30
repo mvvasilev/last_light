@@ -43,7 +43,7 @@ func (inv *BasicInventory) Push(i Item) (success bool) {
 
 	// Try to first find a matching item with capacity
 	for index, existingItem := range inv.contents {
-		if existingItem != nil && existingItem.Type() == itemType {
+		if existingItem != nil && existingItem.Type().Id() == itemType.Id() {
 			if existingItem.Quantity()+1 > existingItem.Type().MaxStack() {
 				continue
 			}

@@ -3,7 +3,7 @@ package world
 import (
 	"maps"
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/npc"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
@@ -43,7 +43,7 @@ func (em *EntityMap) FindEntityByUuid(uuid uuid.UUID) (key int, entity EntityTil
 	return -1, nil
 }
 
-func (em *EntityMap) AddEntity(entity model.MovableEntity, presentation rune, style tcell.Style) {
+func (em *EntityMap) AddEntity(entity npc.MovableEntity, presentation rune, style tcell.Style) {
 	if !em.FitsWithin(entity.Position().XY()) {
 		return
 	}

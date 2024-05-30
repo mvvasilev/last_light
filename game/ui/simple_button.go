@@ -2,6 +2,7 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/input"
 	"strings"
 	"unicode/utf8"
 
@@ -96,6 +97,6 @@ func (sb *UISimpleButton) Draw(v views.View) {
 	sb.text.Draw(v)
 }
 
-func (sb *UISimpleButton) Input(e *tcell.EventKey) {
+func (sb *UISimpleButton) Input(inputAction input.InputAction) {
 
 }

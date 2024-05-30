@@ -2,6 +2,7 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/input"
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
@@ -23,7 +24,9 @@ func CreateWindow(x, y, width, height int, title string, style tcell.Style) *UIW
 
 	titlePos := (width / 2) - int(titleLen/2)
 
-	w.title = engine.CreateText(x+titlePos, y, int(titleLen), 1, title, style)
+	if title != "" {
+		w.title = engine.CreateText(x+titlePos, y, int(titleLen), 1, title, style)
+	}
 
 	w.box = engine.CreateRectangle(
 		x, y, width, height,
@@ -49,13 +52,16 @@ func (w *UIWindow) Position() engine.Position {
 }
 
 func (w *UIWindow) Size() engine.Size {
-	return engine.SizeOf(0, 0)
+	return w.box.Size()
 }
 
 func (w *UIWindow) Draw(v views.View) {
 	w.box.Draw(v)
-	w.title.Draw(v)
+
+	if w.title != nil {
+		w.title.Draw(v)
+	}
 }
 
-func (w *UIWindow) Input(e *tcell.EventKey) {
+func (w *UIWindow) Input(inputAction input.InputAction) {
 }

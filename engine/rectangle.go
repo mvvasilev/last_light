@@ -126,6 +126,10 @@ func (rect Rectangle) Position() Position {
 	return rect.position
 }
 
+func (rect Rectangle) Size() Size {
+	return rect.size
+}
+
 func (rect Rectangle) drawBorders(v views.View) {
 	width := rect.size.Width()
 	height := rect.size.Height()
@@ -168,5 +172,45 @@ func (rect Rectangle) Draw(v views.View) {
 
 	if rect.isFilled {
 		rect.drawFill(v)
+	}
+}
+
+func DrawRectangle(
+	x int,
+	y int,
+	width int,
+	height int,
+	nwCorner, northBorder, neCorner,
+	westBorder, fillRune, eastBorder,
+	swCorner, southBorder, seCorner rune,
+	isBorderless, isFilled bool,
+	style tcell.Style, v views.View,
+) {
+
+	v.SetContent(x, y, nwCorner, nil, style)
+	v.SetContent(x+width-1, y, neCorner, nil, style)
+	v.SetContent(x, y+height-1, swCorner, nil, style)
+	v.SetContent(x+width-1, y+height-1, seCorner, nil, style)
+
+	if !isBorderless {
+		for w := 1; w < width-1; w++ {
+			v.SetContent(x+w, y, northBorder, nil, style)
+			v.SetContent(x+w, y+height-1, southBorder, nil, style)
+		}
+
+		for h := 1; h < height-1; h++ {
+			v.SetContent(x, y+h, westBorder, nil, style)
+			v.SetContent(x+width-1, y+h, eastBorder, nil, style)
+		}
+	}
+
+	if !isFilled {
+		return
+	}
+
+	for w := 1; w < width-1; w++ {
+		for h := 1; h < height-1; h++ {
+			v.SetContent(x+w, y+h, fillRune, nil, style)
+		}
 	}
 }

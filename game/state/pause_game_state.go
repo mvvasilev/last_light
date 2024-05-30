@@ -2,13 +2,18 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/input"
+	"mvvasilev/last_light/game/turns"
 	"mvvasilev/last_light/game/ui"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type PauseGameState struct {
-	prevState PausableState
+	turnSystem  *turns.TurnSystem
+	inputSystem *input.InputSystem
+
+	prevState GameState
 
 	unpauseGame      bool
 	returnToMainMenu bool
@@ -18,9 +23,11 @@ type PauseGameState struct {
 	currButtonSelected int
 }
 
-func PauseGame(prevState PausableState) *PauseGameState {
+func PauseGame(prevState GameState, turnSystem *turns.TurnSystem, inputSystem *input.InputSystem) *PauseGameState {
 	s := new(PauseGameState)
 
+	s.turnSystem = turnSystem
+	s.inputSystem = inputSystem
 	s.prevState = prevState
 
 	highlightStyle := tcell.StyleDefault.Attributes(tcell.AttrBold)
@@ -60,36 +67,32 @@ func PauseGame(prevState PausableState) *PauseGameState {
 	return s
 }
 
-func (pg *PauseGameState) OnInput(e *tcell.EventKey) {
-	if e.Key() == tcell.KeyEsc {
-		pg.unpauseGame = true
-	}
-
-	if e.Key() == tcell.KeyDown {
-		pg.buttons[pg.currButtonSelected].Unhighlight()
-		pg.currButtonSelected = engine.LimitIncrement(pg.currButtonSelected, 1)
-		pg.buttons[pg.currButtonSelected].Highlight()
-	}
-
-	if e.Key() == tcell.KeyUp {
-		pg.buttons[pg.currButtonSelected].Unhighlight()
-		pg.currButtonSelected = engine.LimitDecrement(pg.currButtonSelected, 0)
-		pg.buttons[pg.currButtonSelected].Highlight()
-	}
-
-	if e.Key() == tcell.KeyEnter {
-		pg.buttons[pg.currButtonSelected].Select()
-	}
+func (s *PauseGameState) InputContext() input.Context {
+	return input.InputContext_Menu
 }
 
 func (pg *PauseGameState) OnTick(dt int64) GameState {
+	switch pg.inputSystem.NextAction() {
+	case input.InputAction_Menu_Exit:
+		pg.unpauseGame = true
+	case input.InputAction_Menu_HighlightDown:
+		pg.buttons[pg.currButtonSelected].Unhighlight()
+		pg.currButtonSelected = engine.LimitIncrement(pg.currButtonSelected, 1)
+		pg.buttons[pg.currButtonSelected].Highlight()
+	case input.InputAction_Menu_HighlightUp:
+		pg.buttons[pg.currButtonSelected].Unhighlight()
+		pg.currButtonSelected = engine.LimitDecrement(pg.currButtonSelected, 0)
+		pg.buttons[pg.currButtonSelected].Highlight()
+	case input.InputAction_Menu_Select:
+		pg.buttons[pg.currButtonSelected].Select()
+	}
+
 	if pg.unpauseGame {
-		pg.prevState.Unpause()
 		return pg.prevState
 	}
 
 	if pg.returnToMainMenu {
-		return NewMainMenuState()
+		return CreateMainMenuState(pg.turnSystem, pg.inputSystem)
 	}
 
 	return pg

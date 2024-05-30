@@ -143,3 +143,13 @@ func MapSlice[S ~[]E, E any, R any](slice S, mappingFunc func(e E) R) []R {
 
 	return newSlice
 }
+
+func AbsInt(val int) int {
+	switch {
+	case val < 0:
+		return -val
+	case val == 0:
+		return 0
+	}
+	return val
+}

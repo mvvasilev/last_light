@@ -24,7 +24,15 @@ func CreatePlayer(x, y int) *Player {
 	p.id = uuid.New()
 	p.position = engine.PositionAt(x, y)
 	p.inventory = item.CreateEquippedInventory()
-	p.BasicRPGEntity = rpg.CreateBasicRPGEntity()
+	p.BasicRPGEntity = rpg.CreateBasicRPGEntity(
+		map[rpg.Stat]int{
+			rpg.Stat_Attributes_Constitution: 10,
+			rpg.Stat_Attributes_Dexterity:    10,
+			rpg.Stat_Attributes_Strength:     10,
+			rpg.Stat_Attributes_Intelligence: 10,
+		},
+		map[rpg.Stat][]rpg.StatModifier{},
+	)
 
 	return p
 }

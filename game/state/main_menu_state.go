@@ -2,12 +2,17 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/input"
+	"mvvasilev/last_light/game/turns"
 	"mvvasilev/last_light/game/ui"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type MainMenuState struct {
+	turnSystem  *turns.TurnSystem
+	inputSystem *input.InputSystem
+
 	menuTitle          *engine.Raw
 	buttons            []*ui.UISimpleButton
 	currButtonSelected int
@@ -16,10 +21,15 @@ type MainMenuState struct {
 	startNewGame bool
 }
 
-func NewMainMenuState() *MainMenuState {
+func CreateMainMenuState(turnSystem *turns.TurnSystem, inputSystem *input.InputSystem) *MainMenuState {
+	turnSystem.Clear()
+
 	state := new(MainMenuState)
 
 	highlightStyle := tcell.StyleDefault.Attributes(tcell.AttrBold)
+
+	state.turnSystem = turnSystem
+	state.inputSystem = inputSystem
 
 	state.menuTitle = engine.CreateRawDrawable(
 		11, 1, tcell.StyleDefault.Attributes(tcell.AttrBold).Foreground(tcell.ColorYellow),
@@ -46,31 +56,35 @@ func NewMainMenuState() *MainMenuState {
 	return state
 }
 
-func (mms *MainMenuState) OnInput(e *tcell.EventKey) {
-	if e.Key() == tcell.KeyDown {
+func (s *MainMenuState) InputContext() input.Context {
+	return input.InputContext_Menu
+}
+
+func (mms *MainMenuState) OnTick(dt int64) GameState {
+	nextAction := mms.inputSystem.NextAction()
+
+	if nextAction == input.InputAction_Menu_HighlightDown {
 		mms.buttons[mms.currButtonSelected].Unhighlight()
 		mms.currButtonSelected = engine.LimitIncrement(mms.currButtonSelected, 2)
 		mms.buttons[mms.currButtonSelected].Highlight()
 	}
 
-	if e.Key() == tcell.KeyUp {
+	if nextAction == input.InputAction_Menu_HighlightUp {
 		mms.buttons[mms.currButtonSelected].Unhighlight()
 		mms.currButtonSelected = engine.LimitDecrement(mms.currButtonSelected, 0)
 		mms.buttons[mms.currButtonSelected].Highlight()
 	}
 
-	if e.Key() == tcell.KeyEnter {
+	if nextAction == input.InputAction_Menu_Select {
 		mms.buttons[mms.currButtonSelected].Select()
 	}
-}
 
-func (mms *MainMenuState) OnTick(dt int64) GameState {
 	if mms.quitGame {
 		return &QuitState{}
 	}
 
 	if mms.startNewGame {
-		return BeginPlayingState()
+		return CreatePlayingState(mms.turnSystem, mms.inputSystem)
 	}
 
 	return mms

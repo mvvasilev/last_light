@@ -3,7 +3,7 @@ package world
 import (
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/item"
-	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/npc"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -231,18 +231,18 @@ func (it *ItemTile) Type() TileType {
 }
 
 type EntityTile interface {
-	Entity() model.MovableEntity
+	Entity() npc.MovableEntity
 	Tile
 }
 
 type BasicEntityTile struct {
-	entity model.MovableEntity
+	entity npc.MovableEntity
 
 	presentation rune
 	style        tcell.Style
 }
 
-func CreateBasicEntityTile(entity model.MovableEntity, presentation rune, style tcell.Style) *BasicEntityTile {
+func CreateBasicEntityTile(entity npc.MovableEntity, presentation rune, style tcell.Style) *BasicEntityTile {
 	return &BasicEntityTile{
 		entity:       entity,
 		presentation: presentation,
@@ -250,7 +250,7 @@ func CreateBasicEntityTile(entity model.MovableEntity, presentation rune, style 
 	}
 }
 
-func (bet *BasicEntityTile) Entity() model.MovableEntity {
+func (bet *BasicEntityTile) Entity() npc.MovableEntity {
 	return bet.entity
 }
 

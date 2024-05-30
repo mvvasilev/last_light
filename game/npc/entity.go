@@ -1,4 +1,4 @@
-package model
+package npc
 
 import (
 	"mvvasilev/last_light/engine"
@@ -11,21 +11,36 @@ type Direction int
 
 const (
 	DirectionNone Direction = iota
-	DirectionUp
-	DirectionDown
-	DirectionLeft
-	DirectionRight
+	North
+	South
+	West
+	East
 )
+
+func DirectionName(dir Direction) string {
+	switch dir {
+	case North:
+		return "North"
+	case South:
+		return "South"
+	case West:
+		return "West"
+	case East:
+		return "East"
+	default:
+		return "Unknown"
+	}
+}
 
 func MovementDirectionOffset(dir Direction) (int, int) {
 	switch dir {
-	case DirectionUp:
+	case North:
 		return 0, -1
-	case DirectionDown:
+	case South:
 		return 0, 1
-	case DirectionLeft:
+	case West:
 		return -1, 0
-	case DirectionRight:
+	case East:
 		return 1, 0
 	}
 

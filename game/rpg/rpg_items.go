@@ -6,8 +6,20 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+type RPGItemMetaType int
+
+const (
+	MetaItemType_Physical_Weapon RPGItemMetaType = iota
+	MetaItemType_Magic_Weapon
+	MetaItemType_Weapon
+	MetaItemType_Physical_Armour
+	MetaItemType_Magic_Armour
+	MetaItemType_Armour
+)
+
 type RPGItemType interface {
 	RollDamage() func(victim, attacker RPGEntity) (damage int, dmgType DamageType)
+	MetaTypes() []RPGItemMetaType
 
 	item.ItemType
 }
@@ -21,11 +33,17 @@ type RPGItem interface {
 type BasicRPGItemType struct {
 	damageRollFunc func(victim, attacker RPGEntity) (damage int, dmgType DamageType)
 
+	metaTypes []RPGItemMetaType
+
 	*item.BasicItemType
 }
 
 func (it *BasicRPGItemType) RollDamage() func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 	return it.damageRollFunc
+}
+
+func (it *BasicRPGItemType) MetaTypes() []RPGItemMetaType {
+	return it.metaTypes
 }
 
 func ItemTypeBow() RPGItemType {
@@ -34,7 +52,9 @@ func ItemTypeBow() RPGItemType {
 			// TODO: Ranged
 			return RollD8(1), DamageType_Physical_Piercing
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1000,
 			"Bow",
 			"To shoot arrows with",
 			')',
@@ -51,7 +71,9 @@ func ItemTypeLongsword() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD8(1), DamageType_Physical_Slashing
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1001,
 			"Longsword",
 			"You know nothing.",
 			'/',
@@ -68,7 +90,9 @@ func ItemTypeClub() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD8(1), DamageType_Physical_Bludgeoning
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1002,
 			"Club",
 			"Bonk",
 			'!',
@@ -85,7 +109,9 @@ func ItemTypeDagger() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Piercing
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1003,
 			"Dagger",
 			"Stabby, stabby",
 			'-',
@@ -102,7 +128,9 @@ func ItemTypeHandaxe() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Slashing
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1004,
 			"Handaxe",
 			"Choppy, choppy",
 			'¶',
@@ -120,7 +148,9 @@ func ItemTypeJavelin() RPGItemType {
 			// TODO: Ranged
 			return RollD6(1), DamageType_Physical_Piercing
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1005,
 			"Javelin",
 			"Ranged pokey, pokey",
 			'Î',
@@ -137,7 +167,9 @@ func ItemTypeLightHammer() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Bludgeoning
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1006,
 			"Handaxe",
 			"Choppy, choppy",
 			'¶',
@@ -154,7 +186,9 @@ func ItemTypeMace() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Bludgeoning
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1007,
 			"Mace",
 			"Smashey, smashey",
 			'i',
@@ -172,7 +206,9 @@ func ItemTypeQuarterstaff() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Bludgeoning
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1008,
 			"Quarterstaff",
 			"Whacky, whacky",
 			'|',
@@ -189,7 +225,9 @@ func ItemTypeSickle() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Slashing
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1009,
 			"Sickle",
 			"Slicey, slicey?",
 			'?',
@@ -206,7 +244,9 @@ func ItemTypeSpear() RPGItemType {
 		damageRollFunc: func(victim, attacker RPGEntity) (damage int, dmgType DamageType) {
 			return RollD8(1), DamageType_Physical_Piercing
 		},
+		metaTypes: []RPGItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon},
 		BasicItemType: item.CreateBasicItemType(
+			1010,
 			"Spear",
 			"Pokey, pokey",
 			'Î',

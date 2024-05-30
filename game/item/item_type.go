@@ -5,6 +5,7 @@ import (
 )
 
 type ItemType interface {
+	Id() int
 	Name() string
 	Description() string
 	TileIcon() rune
@@ -15,6 +16,7 @@ type ItemType interface {
 }
 
 type BasicItemType struct {
+	id             int
 	name           string
 	description    string
 	tileIcon       rune
@@ -26,6 +28,7 @@ type BasicItemType struct {
 }
 
 func CreateBasicItemType(
+	id int,
 	name, description string,
 	tileIcon rune,
 	icon string,
@@ -34,6 +37,7 @@ func CreateBasicItemType(
 	style tcell.Style,
 ) *BasicItemType {
 	return &BasicItemType{
+		id:             id,
 		name:           name,
 		description:    description,
 		tileIcon:       tileIcon,
@@ -42,6 +46,10 @@ func CreateBasicItemType(
 		maxStack:       maxStack,
 		equippableSlot: equippableSlot,
 	}
+}
+
+func (it *BasicItemType) Id() int {
+	return it.id
 }
 
 func (it *BasicItemType) Name() string {
@@ -74,6 +82,7 @@ func (it *BasicItemType) EquippableSlot() EquippedSlot {
 
 func ItemTypeFish() ItemType {
 	return &BasicItemType{
+		id:             0,
 		name:           "Fish",
 		description:    "What's a fish doing down here?",
 		tileIcon:       '>',
@@ -86,6 +95,7 @@ func ItemTypeFish() ItemType {
 
 func ItemTypeGold() ItemType {
 	return &BasicItemType{
+		id:             1,
 		name:           "Gold",
 		description:    "Not all those who wander are lost",
 		tileIcon:       '¤',
@@ -98,6 +108,7 @@ func ItemTypeGold() ItemType {
 
 func ItemTypeArrow() ItemType {
 	return &BasicItemType{
+		id:             2,
 		name:           "Arrow",
 		description:    "Ammunition for a bow",
 		tileIcon:       '-',
@@ -110,6 +121,7 @@ func ItemTypeArrow() ItemType {
 
 func ItemTypeKey() ItemType {
 	return &BasicItemType{
+		id:             3,
 		name:           "Key",
 		description:    "Indispensable for unlocking things",
 		tileIcon:       '¬',

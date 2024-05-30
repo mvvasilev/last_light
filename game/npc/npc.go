@@ -1,4 +1,4 @@
-package model
+package npc
 
 import (
 	"mvvasilev/last_light/engine"

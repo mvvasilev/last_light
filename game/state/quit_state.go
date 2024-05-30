@@ -2,15 +2,14 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-
-	"github.com/gdamore/tcell/v2"
+	"mvvasilev/last_light/game/input"
 )
 
 type QuitState struct {
 }
 
-func (q *QuitState) OnInput(e *tcell.EventKey) {
-
+func (s *QuitState) InputContext() input.Context {
+	return input.InputContext_Menu
 }
 
 func (q *QuitState) OnTick(dt int64) GameState {

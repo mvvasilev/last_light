@@ -2,20 +2,11 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-
-	"github.com/gdamore/tcell/v2"
+	"mvvasilev/last_light/game/input"
 )
 
 type GameState interface {
-	OnInput(e *tcell.EventKey)
+	InputContext() input.Context
 	OnTick(dt int64) GameState
 	CollectDrawables() []engine.Drawable
-}
-
-type PausableState interface {
-	Pause()
-	Unpause()
-	SetPaused(paused bool)
-
-	GameState
 }

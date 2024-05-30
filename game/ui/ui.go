@@ -2,15 +2,14 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
-
-	"github.com/gdamore/tcell/v2"
+	"mvvasilev/last_light/game/input"
 )
 
 type UIElement interface {
 	MoveTo(x, y int)
 	Position() engine.Position
 	Size() engine.Size
-	Input(e *tcell.EventKey)
+	Input(inputAction input.InputAction)
 
 	engine.Drawable
 }
