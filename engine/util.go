@@ -131,6 +131,10 @@ func LimitDecrement(i int, limit int) int {
 }
 
 func RandInt(min, max int) int {
+	if min == max {
+		return min
+	}
+
 	return min + rand.Intn(max-min)
 }
 

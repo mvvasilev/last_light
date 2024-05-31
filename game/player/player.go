@@ -18,19 +18,14 @@ type Player struct {
 	*rpg.BasicRPGEntity
 }
 
-func CreatePlayer(x, y int) *Player {
+func CreatePlayer(x, y int, playerStats map[rpg.Stat]int) *Player {
 	p := new(Player)
 
 	p.id = uuid.New()
 	p.position = engine.PositionAt(x, y)
 	p.inventory = item.CreateEquippedInventory()
 	p.BasicRPGEntity = rpg.CreateBasicRPGEntity(
-		map[rpg.Stat]int{
-			rpg.Stat_Attributes_Constitution: 10,
-			rpg.Stat_Attributes_Dexterity:    10,
-			rpg.Stat_Attributes_Strength:     10,
-			rpg.Stat_Attributes_Intelligence: 10,
-		},
+		playerStats,
 		map[rpg.Stat][]rpg.StatModifier{},
 	)
 

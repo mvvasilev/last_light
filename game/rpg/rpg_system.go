@@ -36,6 +36,21 @@ const (
 	Stat_MaxHealthBonus Stat = 140
 )
 
+func StatLongName(stat Stat) string {
+	switch stat {
+	case Stat_Attributes_Strength:
+		return "Strength"
+	case Stat_Attributes_Intelligence:
+		return "Intelligence"
+	case Stat_Attributes_Dexterity:
+		return "Dexterity"
+	case Stat_Attributes_Constitution:
+		return "Constitution"
+	default:
+		return "Unknown"
+	}
+}
+
 type StatModifierId string
 
 type StatModifier struct {

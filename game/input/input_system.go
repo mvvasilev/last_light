@@ -35,8 +35,7 @@ const (
 	InputAction_PickUpItem
 	InputAction_OpenLogs
 	InputAction_DropItem
-	InputAction_EquipItem
-	InputAction_UnequipItem
+	InputAction_InteractItem
 
 	InputAction_PauseGame
 
@@ -76,7 +75,7 @@ func CreateInputSystemWithDefaultBindings() *InputSystem {
 			InputKeyOf(InputContext_Menu, 0, tcell.KeyCR, 13):         InputAction_Menu_Select,
 			InputKeyOf(InputContext_Inventory, 0, tcell.KeyESC, 0):    InputAction_Menu_Exit,
 			InputKeyOf(InputContext_Inventory, 0, tcell.KeyRune, 'i'): InputAction_Menu_Exit,
-			InputKeyOf(InputContext_Inventory, 0, tcell.KeyRune, 'e'): InputAction_EquipItem,
+			InputKeyOf(InputContext_Inventory, 0, tcell.KeyRune, 'e'): InputAction_InteractItem,
 			InputKeyOf(InputContext_Inventory, 0, tcell.KeyRune, 'd'): InputAction_DropItem,
 			InputKeyOf(InputContext_Inventory, 0, tcell.KeyLeft, 0):   InputAction_Menu_HighlightLeft,
 			InputKeyOf(InputContext_Inventory, 0, tcell.KeyRight, 0):  InputAction_Menu_HighlightRight,

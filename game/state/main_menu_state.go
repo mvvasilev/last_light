@@ -84,7 +84,7 @@ func (mms *MainMenuState) OnTick(dt int64) GameState {
 	}
 
 	if mms.startNewGame {
-		return CreatePlayingState(mms.turnSystem, mms.inputSystem)
+		return CreateCharacterCreationState(mms.turnSystem, mms.inputSystem)
 	}
 
 	return mms

@@ -35,7 +35,7 @@ type PlayingState struct {
 	nextGameState GameState
 }
 
-func CreatePlayingState(turnSystem *turns.TurnSystem, inputSystem *input.InputSystem) *PlayingState {
+func CreatePlayingState(turnSystem *turns.TurnSystem, inputSystem *input.InputSystem, playerStats map[rpg.Stat]int) *PlayingState {
 	turnSystem.Clear()
 
 	s := new(PlayingState)
@@ -47,7 +47,11 @@ func CreatePlayingState(turnSystem *turns.TurnSystem, inputSystem *input.InputSy
 
 	s.dungeon = world.CreateDungeon(mapSize.Width(), mapSize.Height(), 1)
 
-	s.player = player.CreatePlayer(s.dungeon.CurrentLevel().PlayerSpawnPoint().XY())
+	s.player = player.CreatePlayer(
+		s.dungeon.CurrentLevel().PlayerSpawnPoint().X(),
+		s.dungeon.CurrentLevel().PlayerSpawnPoint().Y(),
+		playerStats,
+	)
 	s.player.Heal(rpg.BaseMaxHealth(s.player))
 
 	s.turnSystem.Schedule(10, func() (complete bool, requeue bool) {

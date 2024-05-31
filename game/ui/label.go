@@ -45,6 +45,10 @@ func (t *UILabel) Position() engine.Position {
 	return t.text.Position()
 }
 
+func (t *UILabel) SetContent(content string) {
+	t.text = engine.CreateText(t.text.Position().X(), t.text.Position().Y(), int(t.text.Size().Width()), int(t.Size().Height()), content, t.text.Style())
+}
+
 func (t *UILabel) Size() engine.Size {
 	return t.text.Size()
 }
