@@ -5,7 +5,6 @@ import (
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/npc"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
 )
 
@@ -43,13 +42,13 @@ func (em *EntityMap) FindEntityByUuid(uuid uuid.UUID) (key int, entity EntityTil
 	return -1, nil
 }
 
-func (em *EntityMap) AddEntity(entity npc.MovableEntity, presentation rune, style tcell.Style) {
+func (em *EntityMap) AddEntity(entity npc.MovableEntity) {
 	if !em.FitsWithin(entity.Position().XY()) {
 		return
 	}
 
 	key := em.Size().AsArrayIndex(entity.Position().XY())
-	et := CreateBasicEntityTile(entity, presentation, style)
+	et := CreateBasicEntityTile(entity)
 
 	em.entities[key] = et
 }
@@ -111,6 +110,16 @@ func (em *EntityMap) TileAt(x int, y int) Tile {
 	return em.entities[key]
 }
 
+func (em *EntityMap) EntityAt(x, y int) (ent npc.MovableEntity) {
+	tile := em.TileAt(x, y)
+
+	if tile == nil {
+		return nil
+	}
+
+	return tile.(EntityTile).Entity()
+}
+
 func (em *EntityMap) IsInBounds(x, y int) bool {
 	return em.FitsWithin(x, y)
 }
@@ -124,7 +133,4 @@ func (em *EntityMap) ExploredTileAt(x, y int) Tile {
 }
 
 func (em *EntityMap) Tick(dt int64) {
-	for _, e := range em.entities {
-		e.Entity().Tick(dt)
-	}
 }

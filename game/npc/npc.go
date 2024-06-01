@@ -7,16 +7,32 @@ import (
 	"github.com/google/uuid"
 )
 
+type NPC interface {
+	Name() string
+
+	MovableEntity
+}
+
 type BasicNPC struct {
-	id uuid.UUID
+	id           uuid.UUID
+	name         string
+	presentation rune
+	style        tcell.Style
 	engine.Positioned
 }
 
-func CreateNPC(pos engine.Position) *BasicNPC {
+func CreateNPC(pos engine.Position, name string, presentation rune, style tcell.Style) *BasicNPC {
 	return &BasicNPC{
-		id:         uuid.New(),
-		Positioned: engine.WithPosition(pos),
+		id:           uuid.New(),
+		name:         name,
+		presentation: presentation,
+		style:        style,
+		Positioned:   engine.WithPosition(pos),
 	}
+}
+
+func (c *BasicNPC) Name() string {
+	return c.name
 }
 
 func (c *BasicNPC) MoveTo(newPosition engine.Position) {
@@ -27,8 +43,6 @@ func (c *BasicNPC) UniqueId() uuid.UUID {
 	return c.id
 }
 
-func (c *BasicNPC) Input(e *tcell.EventKey) {
-}
-
-func (c *BasicNPC) Tick(dt int64) {
+func (c *BasicNPC) Presentation() (rune, tcell.Style) {
+	return c.presentation, c.style
 }

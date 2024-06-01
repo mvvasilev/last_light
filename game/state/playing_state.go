@@ -1,6 +1,7 @@
 package state
 
 import (
+	"fmt"
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/input"
 	"mvvasilev/last_light/game/npc"
@@ -19,7 +20,7 @@ type PlayingState struct {
 	inputSystem *input.InputSystem
 
 	player  *player.Player
-	someNPC *npc.BasicNPC
+	someNPC npc.RPGNPC
 
 	eventLog   *engine.GameEventLog
 	uiEventLog *ui.UIEventLog
@@ -52,7 +53,6 @@ func CreatePlayingState(turnSystem *turns.TurnSystem, inputSystem *input.InputSy
 		s.dungeon.CurrentLevel().PlayerSpawnPoint().Y(),
 		playerStats,
 	)
-	s.player.Heal(rpg.BaseMaxHealth(s.player))
 
 	s.turnSystem.Schedule(10, func() (complete bool, requeue bool) {
 		requeue = true
@@ -89,7 +89,14 @@ func CreatePlayingState(turnSystem *turns.TurnSystem, inputSystem *input.InputSy
 		return
 	})
 
-	s.someNPC = npc.CreateNPC(s.dungeon.CurrentLevel().NextLevelStaircase())
+	s.someNPC = npc.CreateRPGNPC(
+		s.dungeon.CurrentLevel().NextLevelStaircase().X(),
+		s.dungeon.CurrentLevel().NextLevelStaircase().Y(),
+		"NPC",
+		'n',
+		tcell.StyleDefault,
+		rpg.RandomStats(21, 1, 20, []rpg.Stat{rpg.Stat_Attributes_Strength, rpg.Stat_Attributes_Constitution, rpg.Stat_Attributes_Intelligence, rpg.Stat_Attributes_Dexterity}),
+	)
 
 	s.turnSystem.Schedule(20, func() (complete bool, requeue bool) {
 		s.CalcPathToPlayerAndMove()
@@ -102,8 +109,8 @@ func CreatePlayingState(turnSystem *turns.TurnSystem, inputSystem *input.InputSy
 	s.uiEventLog = ui.CreateUIEventLog(0, 17, 80, 7, s.eventLog, tcell.StyleDefault)
 	s.healthBar = ui.CreateHealthBar(68, 0, 12, 3, s.player.CurrentHealth(), rpg.BaseMaxHealth(s.player), tcell.StyleDefault)
 
-	s.dungeon.CurrentLevel().AddEntity(s.player, '@', tcell.StyleDefault)
-	s.dungeon.CurrentLevel().AddEntity(s.someNPC, 'N', tcell.StyleDefault)
+	s.dungeon.CurrentLevel().AddEntity(s.player)
+	s.dungeon.CurrentLevel().AddEntity(s.someNPC)
 
 	s.viewport = engine.CreateViewport(
 		engine.PositionAt(0, 0),
@@ -132,9 +139,27 @@ func (ps *PlayingState) MovePlayer(direction npc.Direction) {
 		dx, dy := npc.MovementDirectionOffset(direction)
 		ps.dungeon.CurrentLevel().MoveEntity(ps.player.UniqueId(), dx, dy)
 		ps.viewport.SetCenter(ps.player.Position())
+
+		ps.eventLog.Log("You moved " + npc.DirectionName(direction))
 	}
 
-	ps.eventLog.Log("You moved " + npc.DirectionName(direction))
+	ent := ps.dungeon.CurrentLevel().EntityAt(newPlayerPos.XY())
+
+	// We are moving into an entity. Attack it.
+	if ent != nil {
+		switch rpge := ent.(type) {
+		case npc.RPGNPC:
+			hit, precision, evasion, dmg, dmgType := ps.player.CalculateAttack(rpge)
+
+			if !hit {
+				ps.eventLog.Log(fmt.Sprintf("You attacked %v, but missed ( %v Evasion vs %v Precision)", rpge.Name(), evasion, precision))
+				return
+			}
+
+			rpge.Damage(dmg)
+			ps.eventLog.Log(fmt.Sprintf("You attacked %v, and hit for %v %v damage", rpge.Name(), dmg, rpg.DamageTypeName(dmgType)))
+		}
+	}
 }
 
 func (ps *PlayingState) InteractBelowPlayer() {
@@ -184,7 +209,7 @@ func (ps *PlayingState) SwitchToNextLevel() {
 		tcell.StyleDefault,
 	)
 
-	ps.dungeon.CurrentLevel().AddEntity(ps.player, '@', tcell.StyleDefault)
+	ps.dungeon.CurrentLevel().AddEntity(ps.player)
 }
 
 func (ps *PlayingState) SwitchToPreviousLevel() {
@@ -220,7 +245,7 @@ func (ps *PlayingState) SwitchToPreviousLevel() {
 		tcell.StyleDefault,
 	)
 
-	ps.dungeon.CurrentLevel().AddEntity(ps.player, '@', tcell.StyleDefault)
+	ps.dungeon.CurrentLevel().AddEntity(ps.player)
 }
 
 func (ps *PlayingState) PickUpItemUnderPlayer() {
@@ -255,6 +280,10 @@ func (ps *PlayingState) HasLineOfSight(start, end engine.Position) bool {
 	return true
 }
 
+func (ps *PlayingState) PlayerWithinHitRange(pos engine.Position) bool {
+	return pos.WithOffset(-1, 0) == ps.player.Position() || pos.WithOffset(+1, 0) == ps.player.Position() || pos.WithOffset(0, -1) == ps.player.Position() || pos.WithOffset(0, +1) == ps.player.Position()
+}
+
 func (ps *PlayingState) CalcPathToPlayerAndMove() {
 	playerVisibleAndInRange := false
 
@@ -287,6 +316,21 @@ func (ps *PlayingState) CalcPathToPlayerAndMove() {
 				nextPos.Y(),
 			)
 		}
+
+		return
+	}
+
+	if ps.PlayerWithinHitRange(ps.someNPC.Position()) {
+		hit, precision, evasion, dmg, dmgType := ps.player.CalculateAttack(ps.player)
+
+		if !hit {
+			ps.eventLog.Log(fmt.Sprintf("%v attacked you, but missed ( %v Evasion vs %v Precision)", ps.someNPC.Name(), evasion, precision))
+			return
+		}
+
+		ps.player.Damage(dmg)
+		ps.healthBar.SetHealth(ps.player.CurrentHealth())
+		ps.eventLog.Log(fmt.Sprintf("%v attacked you, and hit for %v %v damage", ps.someNPC.Name(), dmg, rpg.DamageTypeName(dmgType)))
 
 		return
 	}

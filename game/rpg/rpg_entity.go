@@ -1,5 +1,7 @@
 package rpg
 
+import "slices"
+
 type RPGEntity interface {
 	BaseStat(stat Stat) int
 	SetBaseStat(stat Stat, value int)
@@ -11,6 +13,8 @@ type RPGEntity interface {
 	CurrentHealth() int
 	Heal(health int)
 	Damage(damage int)
+
+	CalculateAttack(other RPGEntity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType)
 }
 
 type BasicRPGEntity struct {
@@ -21,11 +25,11 @@ type BasicRPGEntity struct {
 	currentHealth int
 }
 
-func CreateBasicRPGEntity(baseStats map[Stat]int, statModifiers map[Stat][]StatModifier) *BasicRPGEntity {
+func CreateBasicRPGEntity(health int, baseStats map[Stat]int, statModifiers map[Stat][]StatModifier) *BasicRPGEntity {
 	return &BasicRPGEntity{
 		stats:         baseStats,
 		statModifiers: statModifiers,
-		currentHealth: 0,
+		currentHealth: health,
 	}
 }
 
@@ -60,7 +64,13 @@ func (brpg *BasicRPGEntity) AddStatModifier(modifier StatModifier) {
 }
 
 func (brpg *BasicRPGEntity) RemoveStatModifier(id StatModifierId) {
-	// TODO
+	for k, v := range brpg.statModifiers {
+		for i, sm := range v {
+			if sm.Id == id {
+				brpg.statModifiers[k] = slices.Delete(v, i, i+1)
+			}
+		}
+	}
 }
 
 func (brpg *BasicRPGEntity) CurrentHealth() int {
@@ -87,4 +97,8 @@ func (brpg *BasicRPGEntity) Damage(damage int) {
 	}
 
 	brpg.currentHealth -= damage
+}
+
+func (brpg *BasicRPGEntity) CalculateAttack(other RPGEntity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
+	return UnarmedAttack(brpg, other)
 }

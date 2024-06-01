@@ -58,21 +58,16 @@ func CreateCharacterCreationState(turnSystem *turns.TurnSystem, inputSystem *inp
 	}
 
 	ccs.menuState.RandomizeCharacter = func() {
-		ccs.menuState.AvailablePoints = 21
+		stats := rpg.RandomStats(21, 1, 20, []rpg.Stat{rpg.Stat_Attributes_Strength, rpg.Stat_Attributes_Constitution, rpg.Stat_Attributes_Intelligence, rpg.Stat_Attributes_Dexterity})
 
-		for _, s := range ccs.menuState.Stats {
-			if ccs.menuState.AvailablePoints == 0 {
-				break
-			}
+		ccs.menuState.AvailablePoints = 0
+		ccs.menuState.Stats = []*menu.StatState{}
 
-			limit := ccs.menuState.AvailablePoints
-
-			if limit > 20 {
-				limit = 20
-			}
-
-			s.Value = engine.RandInt(1, limit+1)
-			ccs.menuState.AvailablePoints -= s.Value - 1
+		for k, v := range stats {
+			ccs.menuState.Stats = append(ccs.menuState.Stats, &menu.StatState{
+				Stat:  k,
+				Value: v,
+			})
 		}
 
 		ccs.ccMenu.UpdateState(ccs.menuState)
@@ -147,8 +142,16 @@ func (ccs *CharacterCreationState) OnTick(dt int64) GameState {
 	case input.InputAction_Menu_HighlightLeft:
 		ccs.DecreaseStatValue()
 	case input.InputAction_Menu_HighlightDown:
+		if ccs.menuState.CurrentHighlight > len(ccs.menuState.Stats) {
+			break
+		}
+
 		ccs.menuState.CurrentHighlight++
 	case input.InputAction_Menu_HighlightUp:
+		if ccs.menuState.CurrentHighlight == 0 {
+			break
+		}
+
 		ccs.menuState.CurrentHighlight--
 	case input.InputAction_Menu_Select:
 		ccs.ccMenu.SelectHighlight()

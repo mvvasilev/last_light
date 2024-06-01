@@ -2,6 +2,7 @@ package npc
 
 import (
 	"mvvasilev/last_light/engine"
+	"mvvasilev/last_light/game/item"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
@@ -49,13 +50,18 @@ func MovementDirectionOffset(dir Direction) (int, int) {
 
 type Entity interface {
 	UniqueId() uuid.UUID
-	Input(e *tcell.EventKey)
-	Tick(dt int64)
+	Presentation() (rune, tcell.Style)
 }
 
 type MovableEntity interface {
 	Position() engine.Position
 	MoveTo(newPosition engine.Position)
+
+	Entity
+}
+
+type EquippedEntity interface {
+	Inventory() *item.EquippedInventory
 
 	Entity
 }

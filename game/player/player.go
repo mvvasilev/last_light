@@ -25,9 +25,12 @@ func CreatePlayer(x, y int, playerStats map[rpg.Stat]int) *Player {
 	p.position = engine.PositionAt(x, y)
 	p.inventory = item.CreateEquippedInventory()
 	p.BasicRPGEntity = rpg.CreateBasicRPGEntity(
+		0,
 		playerStats,
 		map[rpg.Stat][]rpg.StatModifier{},
 	)
+
+	p.Heal(rpg.BaseMaxHealth(p))
 
 	return p
 }
@@ -48,21 +51,17 @@ func (p *Player) Presentation() (rune, tcell.Style) {
 	return '@', tcell.StyleDefault
 }
 
-func (p *Player) Passable() bool {
-	return false
-}
-
-func (p *Player) Transparent() bool {
-	return false
-}
-
 func (p *Player) Inventory() *item.EquippedInventory {
 	return p.inventory
 }
 
-func (p *Player) Input(e *tcell.EventKey) {
-}
+func (p *Player) CalculateAttack(other rpg.RPGEntity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType rpg.DamageType) {
+	mainHand := p.inventory.AtSlot(item.EquippedSlotDominantHand)
 
-func (p *Player) Tick(dt int64) {
-
+	switch mh := mainHand.(type) {
+	case rpg.RPGItem:
+		return rpg.PhysicalWeaponAttack(p, mh, other)
+	default:
+		return rpg.UnarmedAttack(p, other)
+	}
 }

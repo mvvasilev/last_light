@@ -24,12 +24,6 @@ type RPGItemType interface {
 	item.ItemType
 }
 
-type RPGItem interface {
-	Modifiers() []StatModifier
-
-	item.Item
-}
-
 type BasicRPGItemType struct {
 	damageRollFunc func(victim, attacker RPGEntity) (damage int, dmgType DamageType)
 
@@ -258,8 +252,16 @@ func ItemTypeSpear() RPGItemType {
 	}
 }
 
+type RPGItem interface {
+	Modifiers() []StatModifier
+	RPGType() RPGItemType
+
+	item.Item
+}
+
 type BasicRPGItem struct {
 	modifiers []StatModifier
+	rpgType   RPGItemType
 
 	item.BasicItem
 }
@@ -268,9 +270,14 @@ func (i *BasicRPGItem) Modifiers() []StatModifier {
 	return i.modifiers
 }
 
+func (i *BasicRPGItem) RPGType() RPGItemType {
+	return i.rpgType
+}
+
 func CreateRPGItem(name string, style tcell.Style, itemType RPGItemType, modifiers []StatModifier) RPGItem {
 	return &BasicRPGItem{
 		modifiers: modifiers,
+		rpgType:   itemType,
 		BasicItem: item.CreateBasicItemWithName(
 			name,
 			style,

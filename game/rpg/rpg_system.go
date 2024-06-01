@@ -2,6 +2,7 @@ package rpg
 
 import (
 	"math/rand"
+	"mvvasilev/last_light/engine"
 )
 
 type Stat int
@@ -49,6 +50,36 @@ func StatLongName(stat Stat) string {
 	default:
 		return "Unknown"
 	}
+}
+
+func RandomStats(pointsAvailable int, min, max int, stats []Stat) (result map[Stat]int) {
+	result = map[Stat]int{}
+
+	for {
+		if pointsAvailable == 0 {
+			break
+		}
+
+		for _, s := range stats {
+			if pointsAvailable == 0 {
+				break
+			}
+
+			limit := pointsAvailable
+
+			if limit > max {
+				limit = max
+			}
+
+			value := engine.RandInt(min+1, limit+min)
+
+			result[s] += value
+
+			pointsAvailable -= value - min
+		}
+	}
+
+	return
 }
 
 type StatModifierId string
@@ -129,6 +160,33 @@ const (
 	DamageType_Magic_Poison   DamageType = 9
 )
 
+func DamageTypeName(dmgType DamageType) string {
+	switch dmgType {
+	case DamageType_Physical_Unarmed:
+		return "Unarmed"
+	case DamageType_Physical_Slashing:
+		return "Slashing"
+	case DamageType_Physical_Piercing:
+		return "Piercing"
+	case DamageType_Physical_Bludgeoning:
+		return "Bludgeoning"
+	case DamageType_Magic_Fire:
+		return "Fire"
+	case DamageType_Magic_Cold:
+		return "Cold"
+	case DamageType_Magic_Necrotic:
+		return "Necrotic"
+	case DamageType_Magic_Thunder:
+		return "Thunder"
+	case DamageType_Magic_Acid:
+		return "Acid"
+	case DamageType_Magic_Poison:
+		return "Poison"
+	default:
+		return "Unknown"
+	}
+}
+
 func DamageTypeToBonusStat(dmgType DamageType) Stat {
 	switch dmgType {
 	case DamageType_Physical_Unarmed:
@@ -142,7 +200,7 @@ func DamageTypeToBonusStat(dmgType DamageType) Stat {
 	case DamageType_Magic_Fire:
 		return Stat_DamageBonus_Magic_Fire
 	case DamageType_Magic_Cold:
-		return Stat_DamageBonus_Magic_Fire
+		return Stat_DamageBonus_Magic_Cold
 	case DamageType_Magic_Necrotic:
 		return Stat_DamageBonus_Magic_Necrotic
 	case DamageType_Magic_Thunder:
@@ -201,8 +259,12 @@ func MagicHitRoll(attacker RPGEntity, victim RPGEntity) bool {
 }
 
 // true = hit lands, false = hit does not land
-func PhysicalHitRoll(attacker RPGEntity, victim RPGEntity) bool {
-	return hitRoll(EvasionRoll(victim), PhysicalPrecisionRoll(attacker))
+func PhysicalHitRoll(attacker RPGEntity, victim RPGEntity) (hit bool, evasion, precision int) {
+	evasion = EvasionRoll(victim)
+	precision = PhysicalPrecisionRoll(attacker)
+	hit = hitRoll(evasion, precision)
+
+	return
 }
 
 func hitRoll(evasionRoll, precisionRoll int) bool {
@@ -211,4 +273,39 @@ func hitRoll(evasionRoll, precisionRoll int) bool {
 
 func UnarmedDamage(attacker RPGEntity) int {
 	return RollD4(1) + StatValue(attacker, Stat_DamageBonus_Physical_Unarmed)
+}
+
+func PhysicalWeaponDamange(attacker RPGEntity, weapon RPGItem, victim RPGEntity) (totalDamage int, dmgType DamageType) {
+	totalDamage, dmgType = weapon.RPGType().RollDamage()(victim, attacker)
+
+	bonusDmgStat := DamageTypeToBonusStat(dmgType)
+
+	totalDamage = totalDamage + StatValue(attacker, bonusDmgStat)
+
+	return
+}
+
+func UnarmedAttack(attacker RPGEntity, victim RPGEntity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
+	hit, evasionRoll, precisionRoll = PhysicalHitRoll(attacker, victim)
+
+	if !hit {
+		return
+	}
+
+	damage = UnarmedDamage(attacker)
+	damageType = DamageType_Physical_Unarmed
+
+	return
+}
+
+func PhysicalWeaponAttack(attacker RPGEntity, weapon RPGItem, victim RPGEntity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
+	hit, evasionRoll, precisionRoll = PhysicalHitRoll(attacker, victim)
+
+	if !hit {
+		return
+	}
+
+	damage, damageType = PhysicalWeaponDamange(attacker, weapon, victim)
+
+	return
 }

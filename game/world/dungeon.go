@@ -8,7 +8,6 @@ import (
 	"mvvasilev/last_light/game/rpg"
 	"slices"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
 )
 
@@ -240,8 +239,8 @@ func (d *DungeonLevel) DropEntity(uuid uuid.UUID) {
 	d.entityLevel.DropEntity(uuid)
 }
 
-func (d *DungeonLevel) AddEntity(entity npc.MovableEntity, presentation rune, style tcell.Style) {
-	d.entityLevel.AddEntity(entity, presentation, style)
+func (d *DungeonLevel) AddEntity(entity npc.MovableEntity) {
+	d.entityLevel.AddEntity(entity)
 }
 
 func (d *DungeonLevel) MoveEntity(uuid uuid.UUID, dx, dy int) {
@@ -289,6 +288,10 @@ func (d *DungeonLevel) IsTilePassable(x, y int) bool {
 	}
 
 	return d.TileAt(x, y).Passable()
+}
+
+func (d *DungeonLevel) EntityAt(x, y int) (e npc.MovableEntity) {
+	return d.entityLevel.EntityAt(x, y)
 }
 
 func (d *DungeonLevel) IsGroundTileOpaque(x, y int) bool {

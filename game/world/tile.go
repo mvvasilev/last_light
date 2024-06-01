@@ -237,16 +237,11 @@ type EntityTile interface {
 
 type BasicEntityTile struct {
 	entity npc.MovableEntity
-
-	presentation rune
-	style        tcell.Style
 }
 
-func CreateBasicEntityTile(entity npc.MovableEntity, presentation rune, style tcell.Style) *BasicEntityTile {
+func CreateBasicEntityTile(entity npc.MovableEntity) *BasicEntityTile {
 	return &BasicEntityTile{
-		entity:       entity,
-		presentation: presentation,
-		style:        style,
+		entity: entity,
 	}
 }
 
@@ -259,7 +254,7 @@ func (bet *BasicEntityTile) Position() engine.Position {
 }
 
 func (bet *BasicEntityTile) Presentation() (rune, tcell.Style) {
-	return bet.presentation, bet.style
+	return bet.entity.Presentation()
 }
 
 func (bet *BasicEntityTile) Passable() bool {
