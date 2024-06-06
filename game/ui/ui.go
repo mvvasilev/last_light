@@ -2,14 +2,14 @@ package ui
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/input"
+	"mvvasilev/last_light/game/systems"
 )
 
 type UIElement interface {
 	MoveTo(x, y int)
 	Position() engine.Position
 	Size() engine.Size
-	Input(inputAction input.InputAction)
+	Input(inputAction systems.InputAction)
 
 	engine.Drawable
 }

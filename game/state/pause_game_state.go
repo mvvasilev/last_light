@@ -2,16 +2,15 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/input"
-	"mvvasilev/last_light/game/turns"
+	"mvvasilev/last_light/game/systems"
 	"mvvasilev/last_light/game/ui"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type PauseGameState struct {
-	turnSystem  *turns.TurnSystem
-	inputSystem *input.InputSystem
+	turnSystem  *systems.TurnSystem
+	inputSystem *systems.InputSystem
 
 	prevState GameState
 
@@ -23,7 +22,7 @@ type PauseGameState struct {
 	currButtonSelected int
 }
 
-func PauseGame(prevState GameState, turnSystem *turns.TurnSystem, inputSystem *input.InputSystem) *PauseGameState {
+func PauseGame(prevState GameState, turnSystem *systems.TurnSystem, inputSystem *systems.InputSystem) *PauseGameState {
 	s := new(PauseGameState)
 
 	s.turnSystem = turnSystem
@@ -67,23 +66,23 @@ func PauseGame(prevState GameState, turnSystem *turns.TurnSystem, inputSystem *i
 	return s
 }
 
-func (s *PauseGameState) InputContext() input.Context {
-	return input.InputContext_Menu
+func (s *PauseGameState) InputContext() systems.InputContext {
+	return systems.InputContext_Menu
 }
 
 func (pg *PauseGameState) OnTick(dt int64) GameState {
 	switch pg.inputSystem.NextAction() {
-	case input.InputAction_Menu_Exit:
+	case systems.InputAction_Menu_Exit:
 		pg.unpauseGame = true
-	case input.InputAction_Menu_HighlightDown:
+	case systems.InputAction_Menu_HighlightDown:
 		pg.buttons[pg.currButtonSelected].Unhighlight()
 		pg.currButtonSelected = engine.LimitIncrement(pg.currButtonSelected, 1)
 		pg.buttons[pg.currButtonSelected].Highlight()
-	case input.InputAction_Menu_HighlightUp:
+	case systems.InputAction_Menu_HighlightUp:
 		pg.buttons[pg.currButtonSelected].Unhighlight()
 		pg.currButtonSelected = engine.LimitDecrement(pg.currButtonSelected, 0)
 		pg.buttons[pg.currButtonSelected].Highlight()
-	case input.InputAction_Menu_Select:
+	case systems.InputAction_Menu_Select:
 		pg.buttons[pg.currButtonSelected].Select()
 	}
 

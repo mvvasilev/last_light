@@ -2,16 +2,15 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/input"
-	"mvvasilev/last_light/game/turns"
+	"mvvasilev/last_light/game/systems"
 	"mvvasilev/last_light/game/ui"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type MainMenuState struct {
-	turnSystem  *turns.TurnSystem
-	inputSystem *input.InputSystem
+	turnSystem  *systems.TurnSystem
+	inputSystem *systems.InputSystem
 
 	menuTitle          *engine.Raw
 	buttons            []*ui.UISimpleButton
@@ -21,7 +20,7 @@ type MainMenuState struct {
 	startNewGame bool
 }
 
-func CreateMainMenuState(turnSystem *turns.TurnSystem, inputSystem *input.InputSystem) *MainMenuState {
+func CreateMainMenuState(turnSystem *systems.TurnSystem, inputSystem *systems.InputSystem) *MainMenuState {
 	turnSystem.Clear()
 
 	state := new(MainMenuState)
@@ -43,7 +42,7 @@ func CreateMainMenuState(turnSystem *turns.TurnSystem, inputSystem *input.InputS
 	state.buttons = append(state.buttons, ui.CreateSimpleButton(11, 7, "New Game", tcell.StyleDefault, highlightStyle, func() {
 		state.startNewGame = true
 	}))
-	state.buttons = append(state.buttons, ui.CreateSimpleButton(11, 9, "Load Game", tcell.StyleDefault, highlightStyle, func() {
+	state.buttons = append(state.buttons, ui.CreateSimpleButton(11, 9, "Key Bindings // TODO", tcell.StyleDefault, highlightStyle, func() {
 
 	}))
 	state.buttons = append(state.buttons, ui.CreateSimpleButton(11, 11, "Quit", tcell.StyleDefault, highlightStyle, func() {
@@ -56,26 +55,26 @@ func CreateMainMenuState(turnSystem *turns.TurnSystem, inputSystem *input.InputS
 	return state
 }
 
-func (s *MainMenuState) InputContext() input.Context {
-	return input.InputContext_Menu
+func (s *MainMenuState) InputContext() systems.InputContext {
+	return systems.InputContext_Menu
 }
 
 func (mms *MainMenuState) OnTick(dt int64) GameState {
 	nextAction := mms.inputSystem.NextAction()
 
-	if nextAction == input.InputAction_Menu_HighlightDown {
+	if nextAction == systems.InputAction_Menu_HighlightDown {
 		mms.buttons[mms.currButtonSelected].Unhighlight()
 		mms.currButtonSelected = engine.LimitIncrement(mms.currButtonSelected, 2)
 		mms.buttons[mms.currButtonSelected].Highlight()
 	}
 
-	if nextAction == input.InputAction_Menu_HighlightUp {
+	if nextAction == systems.InputAction_Menu_HighlightUp {
 		mms.buttons[mms.currButtonSelected].Unhighlight()
 		mms.currButtonSelected = engine.LimitDecrement(mms.currButtonSelected, 0)
 		mms.buttons[mms.currButtonSelected].Highlight()
 	}
 
-	if nextAction == input.InputAction_Menu_Select {
+	if nextAction == systems.InputAction_Menu_Select {
 		mms.buttons[mms.currButtonSelected].Select()
 	}
 

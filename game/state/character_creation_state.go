@@ -2,9 +2,8 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/input"
-	"mvvasilev/last_light/game/rpg"
-	"mvvasilev/last_light/game/turns"
+	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/systems"
 	"mvvasilev/last_light/game/ui/menu"
 
 	"github.com/gdamore/tcell/v2"
@@ -16,8 +15,8 @@ const (
 )
 
 type CharacterCreationState struct {
-	turnSystem  *turns.TurnSystem
-	inputSystem *input.InputSystem
+	turnSystem  *systems.TurnSystem
+	inputSystem *systems.InputSystem
 
 	startGame bool
 
@@ -25,26 +24,26 @@ type CharacterCreationState struct {
 	ccMenu    *menu.CharacterCreationMenu
 }
 
-func CreateCharacterCreationState(turnSystem *turns.TurnSystem, inputSystem *input.InputSystem) *CharacterCreationState {
+func CreateCharacterCreationState(turnSystem *systems.TurnSystem, inputSystem *systems.InputSystem) *CharacterCreationState {
 
 	menuState := &menu.CharacterCreationMenuState{
 		AvailablePoints:  21,
 		CurrentHighlight: 0,
 		Stats: []*menu.StatState{
 			{
-				Stat:  rpg.Stat_Attributes_Strength,
+				Stat:  model.Stat_Attributes_Strength,
 				Value: 1,
 			},
 			{
-				Stat:  rpg.Stat_Attributes_Dexterity,
+				Stat:  model.Stat_Attributes_Dexterity,
 				Value: 1,
 			},
 			{
-				Stat:  rpg.Stat_Attributes_Intelligence,
+				Stat:  model.Stat_Attributes_Intelligence,
 				Value: 1,
 			},
 			{
-				Stat:  rpg.Stat_Attributes_Constitution,
+				Stat:  model.Stat_Attributes_Constitution,
 				Value: 1,
 			},
 		},
@@ -58,7 +57,12 @@ func CreateCharacterCreationState(turnSystem *turns.TurnSystem, inputSystem *inp
 	}
 
 	ccs.menuState.RandomizeCharacter = func() {
-		stats := rpg.RandomStats(21, 1, 20, []rpg.Stat{rpg.Stat_Attributes_Strength, rpg.Stat_Attributes_Constitution, rpg.Stat_Attributes_Intelligence, rpg.Stat_Attributes_Dexterity})
+		stats := model.RandomStats(21, 1, 20, []model.Stat{
+			model.Stat_Attributes_Strength,
+			model.Stat_Attributes_Constitution,
+			model.Stat_Attributes_Intelligence,
+			model.Stat_Attributes_Dexterity,
+		})
 
 		ccs.menuState.AvailablePoints = 0
 		ccs.menuState.Stats = []*menu.StatState{}
@@ -84,8 +88,8 @@ func CreateCharacterCreationState(turnSystem *turns.TurnSystem, inputSystem *inp
 	return ccs
 }
 
-func (ccs *CharacterCreationState) InputContext() input.Context {
-	return input.InputContext_Menu
+func (ccs *CharacterCreationState) InputContext() systems.InputContext {
+	return systems.InputContext_Menu
 }
 
 func (ccs *CharacterCreationState) IncreaseStatValue() {
@@ -125,7 +129,7 @@ func (ccs *CharacterCreationState) DecreaseStatValue() {
 
 func (ccs *CharacterCreationState) OnTick(dt int64) GameState {
 	if ccs.startGame {
-		stats := map[rpg.Stat]int{}
+		stats := map[model.Stat]int{}
 
 		for _, s := range ccs.menuState.Stats {
 			stats[s.Stat] = s.Value
@@ -137,23 +141,23 @@ func (ccs *CharacterCreationState) OnTick(dt int64) GameState {
 	action := ccs.inputSystem.NextAction()
 
 	switch action {
-	case input.InputAction_Menu_HighlightRight:
+	case systems.InputAction_Menu_HighlightRight:
 		ccs.IncreaseStatValue()
-	case input.InputAction_Menu_HighlightLeft:
+	case systems.InputAction_Menu_HighlightLeft:
 		ccs.DecreaseStatValue()
-	case input.InputAction_Menu_HighlightDown:
+	case systems.InputAction_Menu_HighlightDown:
 		if ccs.menuState.CurrentHighlight > len(ccs.menuState.Stats) {
 			break
 		}
 
 		ccs.menuState.CurrentHighlight++
-	case input.InputAction_Menu_HighlightUp:
+	case systems.InputAction_Menu_HighlightUp:
 		if ccs.menuState.CurrentHighlight == 0 {
 			break
 		}
 
 		ccs.menuState.CurrentHighlight--
-	case input.InputAction_Menu_Select:
+	case systems.InputAction_Menu_Select:
 		ccs.ccMenu.SelectHighlight()
 	}
 

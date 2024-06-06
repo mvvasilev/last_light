@@ -2,17 +2,18 @@ package state
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/input"
-	"mvvasilev/last_light/game/player"
-	"mvvasilev/last_light/game/turns"
+	"mvvasilev/last_light/game/model"
+	"mvvasilev/last_light/game/systems"
 	"mvvasilev/last_light/game/ui/menu"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type InventoryScreenState struct {
-	inputSystem *input.InputSystem
-	turnSystem  *turns.TurnSystem
+	eventLog    *engine.GameEventLog
+	inputSystem *systems.InputSystem
+	turnSystem  *systems.TurnSystem
+	dungeon     *model.Dungeon
 
 	prevState GameState
 	exitMenu  bool
@@ -20,12 +21,13 @@ type InventoryScreenState struct {
 	inventoryMenu         *menu.PlayerInventoryMenu
 	selectedInventorySlot engine.Position
 
-	player *player.Player
+	player *model.Player_V2
 }
 
-func CreateInventoryScreenState(inputSystem *input.InputSystem, turnSystem *turns.TurnSystem, player *player.Player, prevState GameState) *InventoryScreenState {
+func CreateInventoryScreenState(eventLog *engine.GameEventLog, dungeon *model.Dungeon, inputSystem *systems.InputSystem, turnSystem *systems.TurnSystem, player *model.Player_V2, prevState GameState) *InventoryScreenState {
 	iss := new(InventoryScreenState)
 
+	iss.eventLog = eventLog
 	iss.inputSystem = inputSystem
 	iss.turnSystem = turnSystem
 	iss.prevState = prevState
@@ -33,12 +35,13 @@ func CreateInventoryScreenState(inputSystem *input.InputSystem, turnSystem *turn
 	iss.selectedInventorySlot = engine.PositionAt(0, 0)
 	iss.exitMenu = false
 	iss.inventoryMenu = menu.CreatePlayerInventoryMenu(43, 0, player.Inventory(), tcell.StyleDefault, tcell.StyleDefault.Background(tcell.ColorDarkSlateGray))
+	iss.dungeon = dungeon
 
 	return iss
 }
 
-func (s *InventoryScreenState) InputContext() input.Context {
-	return input.InputContext_Inventory
+func (s *InventoryScreenState) InputContext() systems.InputContext {
+	return systems.InputContext_Inventory
 }
 
 func (iss *InventoryScreenState) OnTick(dt int64) (nextState GameState) {
@@ -46,32 +49,53 @@ func (iss *InventoryScreenState) OnTick(dt int64) (nextState GameState) {
 	nextState = iss
 
 	switch nextAction {
-	case input.InputAction_Menu_Exit:
+	case systems.InputAction_Menu_Exit:
 		nextState = iss.prevState
-	case input.InputAction_DropItem:
+	case systems.InputAction_InteractItem:
+		item := iss.player.Inventory().ItemAt(iss.selectedInventorySlot.XY())
+
+		if item == nil {
+			break
+		}
+
+		if item.Usable() != nil {
+			item.Usable().Use(iss.eventLog, iss.dungeon, iss.player)
+		}
+
+		if item.Equippable() != nil {
+			if iss.player.Inventory().AtSlot(item.Equippable().Slot) != nil {
+				iss.player.Inventory().Push(iss.player.Inventory().AtSlot(item.Equippable().Slot))
+			}
+
+			iss.player.Inventory().Equip(item, item.Equippable().Slot)
+		}
+
+		iss.player.Inventory().ReduceQuantityAt(iss.selectedInventorySlot.X(), iss.selectedInventorySlot.Y(), 1)
+
+	case systems.InputAction_DropItem:
 		iss.player.Inventory().Drop(iss.selectedInventorySlot.XY())
-	case input.InputAction_Menu_HighlightUp:
+	case systems.InputAction_Menu_HighlightUp:
 		if iss.selectedInventorySlot.Y() == 0 {
 			break
 		}
 
 		iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(0, -1)
 		iss.inventoryMenu.SelectSlot(iss.selectedInventorySlot.XY())
-	case input.InputAction_Menu_HighlightDown:
+	case systems.InputAction_Menu_HighlightDown:
 		if iss.selectedInventorySlot.Y() == iss.player.Inventory().Shape().Height()-1 {
 			break
 		}
 
 		iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(0, +1)
 		iss.inventoryMenu.SelectSlot(iss.selectedInventorySlot.XY())
-	case input.InputAction_Menu_HighlightLeft:
+	case systems.InputAction_Menu_HighlightLeft:
 		if iss.selectedInventorySlot.X() == 0 {
 			break
 		}
 
 		iss.selectedInventorySlot = iss.selectedInventorySlot.WithOffset(-1, 0)
 		iss.inventoryMenu.SelectSlot(iss.selectedInventorySlot.XY())
-	case input.InputAction_Menu_HighlightRight:
+	case systems.InputAction_Menu_HighlightRight:
 		if iss.selectedInventorySlot.X() == iss.player.Inventory().Shape().Width()-1 {
 			break
 		}

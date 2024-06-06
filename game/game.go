@@ -2,16 +2,15 @@ package game
 
 import (
 	"mvvasilev/last_light/engine"
-	"mvvasilev/last_light/game/input"
 	"mvvasilev/last_light/game/state"
-	"mvvasilev/last_light/game/turns"
+	"mvvasilev/last_light/game/systems"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type Game struct {
-	turnSystem  *turns.TurnSystem
-	inputSystem *input.InputSystem
+	turnSystem  *systems.TurnSystem
+	inputSystem *systems.InputSystem
 
 	state state.GameState
 
@@ -21,9 +20,9 @@ type Game struct {
 func CreateGame() *Game {
 	game := new(Game)
 
-	game.turnSystem = turns.CreateTurnSystem()
+	game.turnSystem = systems.CreateTurnSystem()
 
-	game.inputSystem = input.CreateInputSystemWithDefaultBindings()
+	game.inputSystem = systems.CreateInputSystemWithDefaultBindings()
 
 	game.state = state.CreateMainMenuState(game.turnSystem, game.inputSystem)
 
