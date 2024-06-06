@@ -47,24 +47,6 @@ func MovementDirectionOffset(dir Direction) (int, int) {
 	return 0, 0
 }
 
-// type Entity interface {
-// 	UniqueId() uuid.UUID
-// 	Presentation() (rune, tcell.Style)
-// }
-
-// type MovableEntity interface {
-// 	Position() engine.Position
-// 	MoveTo(newPosition engine.Position)
-
-// 	Entity
-// }
-
-// type EquippedEntity interface {
-// 	Inventory() *EquippedInventory
-
-// 	Entity
-// }
-
 type Entity_NamedComponent struct {
 	Name string
 }
@@ -97,7 +79,7 @@ type Entity_HealthComponent struct {
 	IsDead    bool
 }
 
-type Entity_V2 interface {
+type Entity interface {
 	UniqueId() uuid.UUID
 
 	Named() *Entity_NamedComponent
@@ -109,7 +91,7 @@ type Entity_V2 interface {
 	HealthData() *Entity_HealthComponent
 }
 
-type BaseEntity_V2 struct {
+type BaseEntity struct {
 	id uuid.UUID
 
 	named       *Entity_NamedComponent
@@ -121,40 +103,40 @@ type BaseEntity_V2 struct {
 	damageable  *Entity_HealthComponent
 }
 
-func (be *BaseEntity_V2) UniqueId() uuid.UUID {
+func (be *BaseEntity) UniqueId() uuid.UUID {
 	return be.id
 }
 
-func (be *BaseEntity_V2) Named() *Entity_NamedComponent {
+func (be *BaseEntity) Named() *Entity_NamedComponent {
 	return be.named
 }
 
-func (be *BaseEntity_V2) Described() *Entity_DescribedComponent {
+func (be *BaseEntity) Described() *Entity_DescribedComponent {
 	return be.described
 }
 
-func (be *BaseEntity_V2) Presentable() *Entity_PresentableComponent {
+func (be *BaseEntity) Presentable() *Entity_PresentableComponent {
 	return be.presentable
 }
 
-func (be *BaseEntity_V2) Positioned() *Entity_PositionedComponent {
+func (be *BaseEntity) Positioned() *Entity_PositionedComponent {
 	return be.positioned
 }
 
-func (be *BaseEntity_V2) Equipped() *Entity_EquippedComponent {
+func (be *BaseEntity) Equipped() *Entity_EquippedComponent {
 	return be.equipped
 }
 
-func (be *BaseEntity_V2) Stats() *Entity_StatsHolderComponent {
+func (be *BaseEntity) Stats() *Entity_StatsHolderComponent {
 	return be.stats
 }
 
-func (be *BaseEntity_V2) HealthData() *Entity_HealthComponent {
+func (be *BaseEntity) HealthData() *Entity_HealthComponent {
 	return be.damageable
 }
 
-func CreateEntity(components ...func(*BaseEntity_V2)) *BaseEntity_V2 {
-	e := &BaseEntity_V2{
+func CreateEntity(components ...func(*BaseEntity)) *BaseEntity {
+	e := &BaseEntity{
 		id: uuid.New(),
 	}
 
@@ -165,24 +147,24 @@ func CreateEntity(components ...func(*BaseEntity_V2)) *BaseEntity_V2 {
 	return e
 }
 
-func WithName(name string) func(*BaseEntity_V2) {
-	return func(e *BaseEntity_V2) {
+func WithName(name string) func(*BaseEntity) {
+	return func(e *BaseEntity) {
 		e.named = &Entity_NamedComponent{
 			Name: name,
 		}
 	}
 }
 
-func WithDescription(description string) func(e *BaseEntity_V2) {
-	return func(e *BaseEntity_V2) {
+func WithDescription(description string) func(e *BaseEntity) {
+	return func(e *BaseEntity) {
 		e.described = &Entity_DescribedComponent{
 			Description: description,
 		}
 	}
 }
 
-func WithPresentation(symbol rune, style tcell.Style) func(e *BaseEntity_V2) {
-	return func(e *BaseEntity_V2) {
+func WithPresentation(symbol rune, style tcell.Style) func(e *BaseEntity) {
+	return func(e *BaseEntity) {
 		e.presentable = &Entity_PresentableComponent{
 			Rune:  symbol,
 			Style: style,
@@ -190,24 +172,24 @@ func WithPresentation(symbol rune, style tcell.Style) func(e *BaseEntity_V2) {
 	}
 }
 
-func WithPosition(pos engine.Position) func(e *BaseEntity_V2) {
-	return func(e *BaseEntity_V2) {
+func WithPosition(pos engine.Position) func(e *BaseEntity) {
+	return func(e *BaseEntity) {
 		e.positioned = &Entity_PositionedComponent{
 			Position: pos,
 		}
 	}
 }
 
-func WithInventory(inv *EquippedInventory) func(e *BaseEntity_V2) {
-	return func(e *BaseEntity_V2) {
+func WithInventory(inv *EquippedInventory) func(e *BaseEntity) {
+	return func(e *BaseEntity) {
 		e.equipped = &Entity_EquippedComponent{
 			Inventory: inv,
 		}
 	}
 }
 
-func WithStats(baseStats map[Stat]int, statModifiers ...StatModifier) func(e *BaseEntity_V2) {
-	return func(e *BaseEntity_V2) {
+func WithStats(baseStats map[Stat]int, statModifiers ...StatModifier) func(e *BaseEntity) {
+	return func(e *BaseEntity) {
 		e.stats = &Entity_StatsHolderComponent{
 			BaseStats: baseStats,
 			// StatModifiers: statModifiers,
@@ -215,8 +197,8 @@ func WithStats(baseStats map[Stat]int, statModifiers ...StatModifier) func(e *Ba
 	}
 }
 
-func WithHealthData(health, maxHealth int, isDead bool) func(e *BaseEntity_V2) {
-	return func(e *BaseEntity_V2) {
+func WithHealthData(health, maxHealth int, isDead bool) func(e *BaseEntity) {
+	return func(e *BaseEntity) {
 		e.damageable = &Entity_HealthComponent{
 			Health:    health,
 			MaxHealth: maxHealth,

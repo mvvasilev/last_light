@@ -89,20 +89,20 @@ func (d *Dungeon) HasNextLevel() bool {
 }
 
 type DungeonLevel struct {
-	ground             Map_V2
-	entitiesByPosition map[engine.Position]Entity_V2
-	entities           map[uuid.UUID]Entity_V2
+	ground             Map
+	entitiesByPosition map[engine.Position]Entity
+	entities           map[uuid.UUID]Entity
 }
 
 func CreateDungeonLevel(width, height int, dungeonType DungeonType) (dLevel *DungeonLevel) {
 
 	genTable := CreateLootTable()
 
-	genTable.Add(1, func() Item_V2 {
+	genTable.Add(1, func() Item {
 		return Item_HealthPotion()
 	})
 
-	itemPool := []Item_V2{
+	itemPool := []Item{
 		Item_Bow(),
 		Item_Longsword(),
 		Item_Club(),
@@ -116,7 +116,7 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) (dLevel *Dun
 		Item_Spear(),
 	}
 
-	genTable.Add(1, func() Item_V2 {
+	genTable.Add(1, func() Item {
 		item := itemPool[rand.Intn(len(itemPool))]
 
 		rarities := []ItemRarity{
@@ -130,7 +130,7 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) (dLevel *Dun
 		return GenerateItemOfTypeAndRarity(item, rarities[rand.Intn(len(rarities))])
 	})
 
-	var groundLevel Map_V2
+	var groundLevel Map
 
 	switch dungeonType {
 	case DungeonTypeBSP:
@@ -141,8 +141,8 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) (dLevel *Dun
 
 	dLevel = &DungeonLevel{
 		ground:             groundLevel,
-		entities:           map[uuid.UUID]Entity_V2{},
-		entitiesByPosition: map[engine.Position]Entity_V2{},
+		entities:           map[uuid.UUID]Entity{},
+		entitiesByPosition: map[engine.Position]Entity{},
 	}
 
 	if groundLevel.Rooms() == nil {
@@ -183,10 +183,10 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) (dLevel *Dun
 	return dLevel
 }
 
-func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTable *LootTable, forbiddenPositions []engine.Position) map[engine.Position]Item_V2 {
+func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTable *LootTable, forbiddenPositions []engine.Position) map[engine.Position]Item {
 	rooms := spawnableAreas
 
-	itemLocations := make(map[engine.Position]Item_V2, 0)
+	itemLocations := make(map[engine.Position]Item, 0)
 
 	for _, r := range rooms {
 		maxItems := int(maxItemRatio * float32(r.Size().Area()))
@@ -220,7 +220,7 @@ func SpawnItems(spawnableAreas []engine.BoundingBox, maxItemRatio float32, genTa
 	return itemLocations
 }
 
-func (d *DungeonLevel) Ground() Map_V2 {
+func (d *DungeonLevel) Ground() Map {
 	return d.ground
 }
 
@@ -234,7 +234,7 @@ func (d *DungeonLevel) DropEntity(uuid uuid.UUID) {
 	delete(d.entities, uuid)
 }
 
-func (d *DungeonLevel) AddEntity(entity Entity_V2) {
+func (d *DungeonLevel) AddEntity(entity Entity) {
 	d.entities[entity.UniqueId()] = entity
 
 	if entity.Positioned() != nil {
@@ -260,7 +260,7 @@ func (d *DungeonLevel) RemoveEntityAt(x, y int) {
 	delete(d.entitiesByPosition, engine.PositionAt(x, y))
 }
 
-func (d *DungeonLevel) RemoveItemAt(x, y int) (item Item_V2) {
+func (d *DungeonLevel) RemoveItemAt(x, y int) (item Item) {
 	if !Map_IsInBounds(d.ground, x, y) {
 		return nil
 	}
@@ -278,7 +278,7 @@ func (d *DungeonLevel) RemoveItemAt(x, y int) (item Item_V2) {
 	return
 }
 
-func (d *DungeonLevel) SetItemAt(x, y int, it Item_V2) (success bool) {
+func (d *DungeonLevel) SetItemAt(x, y int, it Item) (success bool) {
 	if !d.TileAt(x, y).Passable() {
 		return false
 	}
@@ -290,7 +290,7 @@ func (d *DungeonLevel) SetItemAt(x, y int, it Item_V2) (success bool) {
 	return true
 }
 
-func (d *DungeonLevel) TileAt(x, y int) Tile_V2 {
+func (d *DungeonLevel) TileAt(x, y int) Tile {
 	entity := d.entitiesByPosition[engine.PositionAt(x, y)]
 	tile := Map_TileAt(d.ground, x, y)
 
@@ -315,7 +315,7 @@ func (d *DungeonLevel) IsTilePassable(x, y int) bool {
 	return tile.Passable()
 }
 
-func (d *DungeonLevel) EntityAt(x, y int) (e Entity_V2) {
+func (d *DungeonLevel) EntityAt(x, y int) (e Entity) {
 	return d.entitiesByPosition[engine.PositionAt(x, y)]
 }
 

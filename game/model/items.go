@@ -34,7 +34,7 @@ const (
 	// Special
 )
 
-func Item_Fish() Item_V2 {
+func Item_Fish() Item {
 	return createBaseItem(
 		ItemType_Fish,
 		'>',
@@ -44,10 +44,10 @@ func Item_Fish() Item_V2 {
 		item_WithName("Fish", tcell.StyleDefault),
 		item_WithDescription("On use heals for 1d4", tcell.StyleDefault),
 		item_WithUsable(
-			func(e Entity_V2) bool {
+			func(e Entity) bool {
 				return e.HealthData() != nil
 			},
-			func(log *engine.GameEventLog, d *Dungeon, e Entity_V2) {
+			func(log *engine.GameEventLog, d *Dungeon, e Entity) {
 				damageable := e.HealthData()
 
 				if damageable != nil {
@@ -67,7 +67,7 @@ func Item_Fish() Item_V2 {
 	)
 }
 
-func Item_SmallHealthPotion() Item_V2 {
+func Item_SmallHealthPotion() Item {
 	return createBaseItem(
 		ItemType_SmallHealthPotion,
 		'ó',
@@ -77,10 +77,10 @@ func Item_SmallHealthPotion() Item_V2 {
 		item_WithName("Small Health Potion", tcell.StyleDefault),
 		item_WithDescription("On use heals for 2d6", tcell.StyleDefault),
 		item_WithUsable(
-			func(e Entity_V2) bool {
+			func(e Entity) bool {
 				return e.HealthData() != nil
 			},
-			func(log *engine.GameEventLog, d *Dungeon, e Entity_V2) {
+			func(log *engine.GameEventLog, d *Dungeon, e Entity) {
 				damageable := e.HealthData()
 
 				if damageable != nil {
@@ -100,7 +100,7 @@ func Item_SmallHealthPotion() Item_V2 {
 	)
 }
 
-func Item_HealthPotion() Item_V2 {
+func Item_HealthPotion() Item {
 	return createBaseItem(
 		ItemType_HealthPotion,
 		'ó',
@@ -110,10 +110,10 @@ func Item_HealthPotion() Item_V2 {
 		item_WithName("Health Potion", tcell.StyleDefault),
 		item_WithDescription("On use heals for 3d6", tcell.StyleDefault),
 		item_WithUsable(
-			func(e Entity_V2) bool {
+			func(e Entity) bool {
 				return e.HealthData() != nil
 			},
-			func(log *engine.GameEventLog, d *Dungeon, e Entity_V2) {
+			func(log *engine.GameEventLog, d *Dungeon, e Entity) {
 				damageable := e.HealthData()
 
 				if damageable != nil {
@@ -133,7 +133,7 @@ func Item_HealthPotion() Item_V2 {
 	)
 }
 
-func Item_LargeHealthPotion() Item_V2 {
+func Item_LargeHealthPotion() Item {
 	return createBaseItem(
 		ItemType_LargeHealthPotion,
 		'ó',
@@ -143,10 +143,10 @@ func Item_LargeHealthPotion() Item_V2 {
 		item_WithName("Large Health Potion", tcell.StyleDefault),
 		item_WithDescription("On use heals for 4d6", tcell.StyleDefault),
 		item_WithUsable(
-			func(e Entity_V2) bool {
+			func(e Entity) bool {
 				return e.HealthData() != nil
 			},
-			func(log *engine.GameEventLog, d *Dungeon, e Entity_V2) {
+			func(log *engine.GameEventLog, d *Dungeon, e Entity) {
 				damageable := e.HealthData()
 
 				if damageable != nil {
@@ -166,7 +166,7 @@ func Item_LargeHealthPotion() Item_V2 {
 	)
 }
 
-func Item_Bow() Item_V2 {
+func Item_Bow() Item {
 	return createBaseItem(
 		ItemType_Bow,
 		')',
@@ -183,7 +183,7 @@ func Item_Bow() Item_V2 {
 	)
 }
 
-func Item_Longsword() Item_V2 {
+func Item_Longsword() Item {
 	return createBaseItem(
 		ItemType_Longsword,
 		'/',
@@ -200,7 +200,7 @@ func Item_Longsword() Item_V2 {
 	)
 }
 
-func Item_Club() Item_V2 {
+func Item_Club() Item {
 	return createBaseItem(
 		ItemType_Club,
 		'!',
@@ -217,7 +217,7 @@ func Item_Club() Item_V2 {
 	)
 }
 
-func Item_Dagger() Item_V2 {
+func Item_Dagger() Item {
 	return createBaseItem(
 		ItemType_Dagger,
 		'-',
@@ -234,7 +234,7 @@ func Item_Dagger() Item_V2 {
 	)
 }
 
-func Item_Handaxe() Item_V2 {
+func Item_Handaxe() Item {
 	return createBaseItem(
 		ItemType_Handaxe,
 		'¶',
@@ -251,7 +251,7 @@ func Item_Handaxe() Item_V2 {
 	)
 }
 
-func Item_Javelin() Item_V2 {
+func Item_Javelin() Item {
 	return createBaseItem(
 		ItemType_Javelin,
 		'Î',
@@ -268,7 +268,7 @@ func Item_Javelin() Item_V2 {
 	)
 }
 
-func Item_LightHammer() Item_V2 {
+func Item_LightHammer() Item {
 	return createBaseItem(
 		ItemType_LightHammer,
 		'i',
@@ -285,7 +285,7 @@ func Item_LightHammer() Item_V2 {
 	)
 }
 
-func Item_Mace() Item_V2 {
+func Item_Mace() Item {
 	return createBaseItem(
 		ItemType_Mace,
 		'i',
@@ -302,7 +302,7 @@ func Item_Mace() Item_V2 {
 	)
 }
 
-func Item_Quarterstaff() Item_V2 {
+func Item_Quarterstaff() Item {
 	return createBaseItem(
 		ItemType_Quarterstaff,
 		'|',
@@ -319,7 +319,7 @@ func Item_Quarterstaff() Item_V2 {
 	)
 }
 
-func Item_Sickle() Item_V2 {
+func Item_Sickle() Item {
 	return createBaseItem(
 		ItemType_Sickle,
 		'?',
@@ -336,7 +336,7 @@ func Item_Sickle() Item_V2 {
 	)
 }
 
-func Item_Spear() Item_V2 {
+func Item_Spear() Item {
 	return createBaseItem(
 		ItemType_Spear,
 		'Î',
@@ -352,99 +352,6 @@ func Item_Spear() Item_V2 {
 		item_WithEquippable(EquippedSlotDominantHand),
 	)
 }
-
-// import (
-// 	"github.com/gdamore/tcell/v2"
-// )
-
-// type ItemType interface {
-// 	Id() int
-// 	Name() string
-// 	Description() string
-// 	TileIcon() rune
-// 	Icon() string
-// 	Style() tcell.Style
-// 	MaxStack() int
-// 	EquippableSlot() EquippedSlot
-// }
-
-// type BasicItemType struct {
-// 	id             int
-// 	name           string
-// 	description    string
-// 	tileIcon       rune
-// 	itemIcon       string
-// 	maxStack       int
-// 	equippableSlot EquippedSlot
-
-// 	style tcell.Style
-// }
-
-// func CreateBasicItemType(
-// 	id int,
-// 	name, description string,
-// 	tileIcon rune,
-// 	icon string,
-// 	maxStack int,
-// 	equippableSlot EquippedSlot,
-// 	style tcell.Style,
-// ) *BasicItemType {
-// 	return &BasicItemType{
-// 		id:             id,
-// 		name:           name,
-// 		description:    description,
-// 		tileIcon:       tileIcon,
-// 		itemIcon:       icon,
-// 		style:          style,
-// 		maxStack:       maxStack,
-// 		equippableSlot: equippableSlot,
-// 	}
-// }
-
-// func (it *BasicItemType) Id() int {
-// 	return it.id
-// }
-
-// func (it *BasicItemType) Name() string {
-// 	return it.name
-// }
-
-// func (it *BasicItemType) Description() string {
-// 	return it.description
-// }
-
-// func (it *BasicItemType) TileIcon() rune {
-// 	return it.tileIcon
-// }
-
-// func (it *BasicItemType) Icon() string {
-// 	return it.itemIcon
-// }
-
-// func (it *BasicItemType) Style() tcell.Style {
-// 	return it.style
-// }
-
-// func (it *BasicItemType) MaxStack() int {
-// 	return it.maxStack
-// }
-
-// func (it *BasicItemType) EquippableSlot() EquippedSlot {
-// 	return it.equippableSlot
-// }
-
-// func ItemTypeFish() ItemType {
-// 	return &BasicItemType{
-// 		id:             0,
-// 		name:           "Fish",
-// 		description:    "What's a fish doing down here?",
-// 		tileIcon:       '>',
-// 		itemIcon:       "»o>",
-// 		style:          tcell.StyleDefault.Foreground(tcell.ColorDarkCyan),
-// 		equippableSlot: EquippedSlotNone,
-// 		maxStack:       16,
-// 	}
-// }
 
 // func ItemTypeGold() ItemType {
 // 	return &BasicItemType{

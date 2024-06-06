@@ -14,14 +14,14 @@ import (
 
 type UIHealthBar struct {
 	id     uuid.UUID
-	player *model.Player_V2
+	player *model.Player
 
 	window *UIWindow
 
 	style tcell.Style
 }
 
-func CreateHealthBar(x, y, w, h int, player *model.Player_V2, style tcell.Style) *UIHealthBar {
+func CreateHealthBar(x, y, w, h int, player *model.Player, style tcell.Style) *UIHealthBar {
 	return &UIHealthBar{
 		window: CreateWindow(x, y, w, h, "HP", style),
 		player: player,

@@ -5,28 +5,28 @@ import (
 )
 
 type Inventory interface {
-	Items() []Item_V2
+	Items() []Item
 	Shape() engine.Size
-	Push(item Item_V2) bool
-	Drop(x, y int) Item_V2
-	ItemAt(x, y int) Item_V2
+	Push(item Item) bool
+	Drop(x, y int) Item
+	ItemAt(x, y int) Item
 }
 
 type BasicInventory struct {
-	contents []Item_V2
+	contents []Item
 	shape    engine.Size
 }
 
 func CreateInventory(shape engine.Size) *BasicInventory {
 	inv := new(BasicInventory)
 
-	inv.contents = make([]Item_V2, 0, shape.Height()*shape.Width())
+	inv.contents = make([]Item, 0, shape.Height()*shape.Width())
 	inv.shape = shape
 
 	return inv
 }
 
-func (i *BasicInventory) Items() (items []Item_V2) {
+func (i *BasicInventory) Items() (items []Item) {
 	return i.contents
 }
 
@@ -34,7 +34,7 @@ func (i *BasicInventory) Shape() engine.Size {
 	return i.shape
 }
 
-func (inv *BasicInventory) Push(i Item_V2) (success bool) {
+func (inv *BasicInventory) Push(i Item) (success bool) {
 	if len(inv.contents) == inv.shape.Area() {
 		return false
 	}
@@ -91,7 +91,7 @@ func (inv *BasicInventory) Push(i Item_V2) (success bool) {
 	return true
 }
 
-func (i *BasicInventory) Drop(x, y int) Item_V2 {
+func (i *BasicInventory) Drop(x, y int) Item {
 	index := y*i.shape.Width() + x
 
 	if index > len(i.contents)-1 {
@@ -125,7 +125,7 @@ func (i *BasicInventory) ReduceQuantityAt(x, y int, amount int) {
 	}
 }
 
-func (i *BasicInventory) ItemAt(x, y int) (item Item_V2) {
+func (i *BasicInventory) ItemAt(x, y int) (item Item) {
 	index := y*i.shape.Width() + x
 
 	if index > len(i.contents)-1 {

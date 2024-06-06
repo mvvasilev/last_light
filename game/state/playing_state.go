@@ -15,8 +15,8 @@ type PlayingState struct {
 	turnSystem  *systems.TurnSystem
 	inputSystem *systems.InputSystem
 
-	player  *model.Player_V2
-	someNPC model.Entity_V2
+	player  *model.Player
+	someNPC model.Entity
 
 	eventLog   *engine.GameEventLog
 	uiEventLog *ui.UIEventLog
@@ -44,7 +44,7 @@ func CreatePlayingState(turnSystem *systems.TurnSystem, inputSystem *systems.Inp
 
 	s.dungeon = model.CreateDungeon(mapSize.Width(), mapSize.Height(), 1)
 
-	s.player = model.CreatePlayer_V2(
+	s.player = model.CreatePlayer(
 		s.dungeon.CurrentLevel().Ground().PlayerSpawnPoint().Position.X(),
 		s.dungeon.CurrentLevel().Ground().PlayerSpawnPoint().Position.Y(),
 		playerStats,
@@ -156,7 +156,7 @@ func (ps *PlayingState) MovePlayer(direction model.Direction) {
 	}
 }
 
-func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim model.Entity_V2) {
+func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim model.Entity) {
 	hit, precision, evasion, dmg, dmgType := CalculateAttack(attacker, victim)
 
 	attackerName := "Unknown"
@@ -187,7 +187,7 @@ func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim model.Entity_
 	eventLog.Log(fmt.Sprintf("%s attacked %s, and hit for %v %v damage", attackerName, victimName, dmg, model.DamageTypeName(dmgType)))
 }
 
-func CalculateAttack(attacker, victim model.Entity_V2) (hit bool, precisionRoll, evasionRoll int, damage int, damageType model.DamageType) {
+func CalculateAttack(attacker, victim model.Entity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType model.DamageType) {
 	if attacker.Equipped() != nil && attacker.Equipped().Inventory.AtSlot(model.EquippedSlotDominantHand) != nil {
 		weapon := attacker.Equipped().Inventory.AtSlot(model.EquippedSlotDominantHand)
 
@@ -403,7 +403,7 @@ func (ps *PlayingState) OnTick(dt int64) (nextState GameState) {
 func (ps *PlayingState) CollectDrawables() []engine.Drawable {
 	mainCameraDrawingInstructions := engine.CreateDrawingInstructions(func(v views.View) {
 		visibilityMap := engine.ComputeFOV(
-			func(x, y int) model.Tile_V2 {
+			func(x, y int) model.Tile {
 				model.Map_MarkExplored(ps.dungeon.CurrentLevel().Ground(), x, y)
 
 				return ps.dungeon.CurrentLevel().TileAt(x, y)

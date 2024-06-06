@@ -21,10 +21,10 @@ type InventoryScreenState struct {
 	inventoryMenu         *menu.PlayerInventoryMenu
 	selectedInventorySlot engine.Position
 
-	player *model.Player_V2
+	player *model.Player
 }
 
-func CreateInventoryScreenState(eventLog *engine.GameEventLog, dungeon *model.Dungeon, inputSystem *systems.InputSystem, turnSystem *systems.TurnSystem, player *model.Player_V2, prevState GameState) *InventoryScreenState {
+func CreateInventoryScreenState(eventLog *engine.GameEventLog, dungeon *model.Dungeon, inputSystem *systems.InputSystem, turnSystem *systems.TurnSystem, player *model.Player, prevState GameState) *InventoryScreenState {
 	iss := new(InventoryScreenState)
 
 	iss.eventLog = eventLog

@@ -18,13 +18,13 @@ const (
 )
 
 type EquippedInventory struct {
-	offHand      Item_V2
-	dominantHand Item_V2
+	offHand      Item
+	dominantHand Item
 
-	head       Item_V2
-	chestplate Item_V2
-	leggings   Item_V2
-	shoes      Item_V2
+	head       Item
+	chestplate Item
+	leggings   Item
+	shoes      Item
 
 	*BasicInventory
 }
@@ -35,7 +35,7 @@ func CreateEquippedInventory() *EquippedInventory {
 	}
 }
 
-func (ei *EquippedInventory) AtSlot(slot EquippedSlot) Item_V2 {
+func (ei *EquippedInventory) AtSlot(slot EquippedSlot) Item {
 	switch slot {
 	case EquippedSlotOffhand:
 		return ei.offHand
@@ -54,7 +54,7 @@ func (ei *EquippedInventory) AtSlot(slot EquippedSlot) Item_V2 {
 	}
 }
 
-func (ei *EquippedInventory) Equip(item Item_V2, slot EquippedSlot) Item_V2 {
+func (ei *EquippedInventory) Equip(item Item, slot EquippedSlot) Item {
 	switch slot {
 	case EquippedSlotOffhand:
 		ei.offHand = item

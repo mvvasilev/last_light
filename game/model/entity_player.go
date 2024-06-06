@@ -6,13 +6,13 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-type Player_V2 struct {
-	Entity_V2
+type Player struct {
+	Entity
 }
 
-func CreatePlayer_V2(x, y int, playerBaseStats map[Stat]int) *Player_V2 {
-	p := &Player_V2{
-		Entity_V2: CreateEntity(
+func CreatePlayer(x, y int, playerBaseStats map[Stat]int) *Player {
+	p := &Player{
+		Entity: CreateEntity(
 			WithName("Player"),
 			WithPosition(engine.PositionAt(x, y)),
 			WithPresentation('@', tcell.StyleDefault),
@@ -28,22 +28,22 @@ func CreatePlayer_V2(x, y int, playerBaseStats map[Stat]int) *Player_V2 {
 	return p
 }
 
-func (p *Player_V2) Inventory() *EquippedInventory {
-	return p.Entity_V2.Equipped().Inventory
+func (p *Player) Inventory() *EquippedInventory {
+	return p.Entity.Equipped().Inventory
 }
 
-func (p *Player_V2) Position() engine.Position {
-	return p.Entity_V2.Positioned().Position
+func (p *Player) Position() engine.Position {
+	return p.Entity.Positioned().Position
 }
 
-func (p *Player_V2) Presentation() (rune, tcell.Style) {
+func (p *Player) Presentation() (rune, tcell.Style) {
 	return p.Presentable().Rune, p.Presentable().Style
 }
 
-func (p *Player_V2) Stats() *Entity_StatsHolderComponent {
-	return p.Entity_V2.Stats()
+func (p *Player) Stats() *Entity_StatsHolderComponent {
+	return p.Entity.Stats()
 }
 
-func (p *Player_V2) HealthData() *Entity_HealthComponent {
-	return p.Entity_V2.HealthData()
+func (p *Player) HealthData() *Entity_HealthComponent {
+	return p.Entity.HealthData()
 }

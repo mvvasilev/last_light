@@ -27,7 +27,7 @@ type bspNode struct {
 	splitDir splitDirection
 }
 
-func CreateBSPDungeonMap(width, height int, numSplits int) Map_V2 {
+func CreateBSPDungeonMap(width, height int, numSplits int) Map {
 	root := new(bspNode)
 
 	root.origin = engine.PositionAt(0, 0)
@@ -35,10 +35,10 @@ func CreateBSPDungeonMap(width, height int, numSplits int) Map_V2 {
 
 	split(root, numSplits)
 
-	tiles := make([][]Tile_V2, height)
+	tiles := make([][]Tile, height)
 
 	for h := range height {
-		tiles[h] = make([]Tile_V2, width)
+		tiles[h] = make([]Tile, width)
 	}
 
 	rooms := make([]engine.BoundingBox, 0, numSplits*numSplits)
@@ -113,24 +113,6 @@ func CreateBSPDungeonMap(width, height int, numSplits int) Map_V2 {
 	Map_SetTileAt(newBsp, newBsp.NextLevelStaircase().Position.X(), newBsp.NextLevelStaircase().Position.Y(), Tile_StaircaseDown())
 	Map_SetTileAt(newBsp, newBsp.PreviousLevelStaircase().Position.X(), newBsp.PreviousLevelStaircase().Position.Y(), Tile_StaircaseUp())
 
-	// bsp := new(BSPDungeonMap)
-
-	// bsp.rooms = rooms
-	// bsp.level = CreateBasicMap(tiles, tcell.StyleDefault.Foreground(tcell.ColorLightSlateGrey))
-
-	// bsp.playerSpawnPoint = engine.PositionAt(
-	// 	spawnRoom.Position().X()+spawnRoom.Size().Width()/2,
-	// 	spawnRoom.Position().Y()+spawnRoom.Size().Height()/2,
-	// )
-
-	// bsp.nextLevelStaircase = engine.PositionAt(
-	// 	staircaseRoom.Position().X()+staircaseRoom.Size().Width()/2,
-	// 	staircaseRoom.Position().Y()+staircaseRoom.Size().Height()/2,
-	// )
-
-	// bsp.level.SetTileAt(bsp.nextLevelStaircase.X(), bsp.nextLevelStaircase.Y(), CreateStaticTile(bsp.nextLevelStaircase.X(), bsp.nextLevelStaircase.Y(), TileTypeStaircaseDown()))
-	// bsp.level.SetTileAt(bsp.playerSpawnPoint.X(), bsp.playerSpawnPoint.Y(), CreateStaticTile(bsp.playerSpawnPoint.X(), bsp.playerSpawnPoint.Y(), TileTypeStaircaseUp()))
-
 	return newBsp
 }
 
@@ -146,7 +128,7 @@ func findRoom(parent *bspNode) engine.BoundingBox {
 	}
 }
 
-func zCorridor(tiles [][]Tile_V2, from engine.Position, to engine.Position, direction splitDirection) {
+func zCorridor(tiles [][]Tile, from engine.Position, to engine.Position, direction splitDirection) {
 	switch direction {
 	case splitDirectionHorizontal:
 		xMidPoint := (from.X() + to.X()) / 2
@@ -228,7 +210,7 @@ func split(parent *bspNode, numSplits int) {
 	split(parent.right, numSplits-1)
 }
 
-func horizontalTunnel(tiles [][]Tile_V2, x1, x2, y int) {
+func horizontalTunnel(tiles [][]Tile, x1, x2, y int) {
 	if x1 > x2 {
 		tx := x2
 		x2 = x1
@@ -255,7 +237,7 @@ func horizontalTunnel(tiles [][]Tile_V2, x1, x2, y int) {
 	placeWallAtIfNotPassable(tiles, x2, y+1)
 }
 
-func verticalTunnel(tiles [][]Tile_V2, y1, y2, x int) {
+func verticalTunnel(tiles [][]Tile, y1, y2, x int) {
 	if y1 > y2 {
 		ty := y2
 		y2 = y1
@@ -282,7 +264,7 @@ func verticalTunnel(tiles [][]Tile_V2, y1, y2, x int) {
 	placeWallAtIfNotPassable(tiles, x+1, y2)
 }
 
-func placeWallAtIfNotPassable(tiles [][]Tile_V2, x, y int) {
+func placeWallAtIfNotPassable(tiles [][]Tile, x, y int) {
 	if tiles[y][x] != nil && tiles[y][x].Passable() {
 		return
 	}
@@ -290,7 +272,7 @@ func placeWallAtIfNotPassable(tiles [][]Tile_V2, x, y int) {
 	tiles[y][x] = Tile_Wall()
 }
 
-func makeRoom(tiles [][]Tile_V2, room engine.BoundingBox) {
+func makeRoom(tiles [][]Tile, room engine.BoundingBox) {
 	width := room.Size().Width()
 	height := room.Size().Height()
 	x := room.Position().X()

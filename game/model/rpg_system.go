@@ -275,7 +275,7 @@ func statValue(stats *Entity_StatsHolderComponent, stat Stat) int {
 
 // Base Max Health is determined from constitution:
 // 5*Constitution + Max Health Bonus
-func BaseMaxHealth(entity Entity_V2) int {
+func BaseMaxHealth(entity Entity) int {
 	stats := entity.Stats()
 
 	if stats == nil {
@@ -286,7 +286,7 @@ func BaseMaxHealth(entity Entity_V2) int {
 }
 
 // Dexterity + Evasion bonus + luck roll
-func EvasionRoll(victim Entity_V2) int {
+func EvasionRoll(victim Entity) int {
 	if victim.Stats() == nil {
 		return 0
 	}
@@ -295,7 +295,7 @@ func EvasionRoll(victim Entity_V2) int {
 }
 
 // Strength + Precision bonus ( melee + total ) + luck roll
-func PhysicalPrecisionRoll(attacker Entity_V2) int {
+func PhysicalPrecisionRoll(attacker Entity) int {
 	if attacker.Stats() == nil {
 		return 0
 	}
@@ -304,7 +304,7 @@ func PhysicalPrecisionRoll(attacker Entity_V2) int {
 }
 
 // Intelligence + Precision bonus ( magic + total ) + luck roll
-func MagicPrecisionRoll(attacker Entity_V2) int {
+func MagicPrecisionRoll(attacker Entity) int {
 	if attacker.Stats() == nil {
 		return 0
 	}
@@ -313,12 +313,12 @@ func MagicPrecisionRoll(attacker Entity_V2) int {
 }
 
 // true = hit lands, false = hit does not land
-func MagicHitRoll(attacker Entity_V2, victim Entity_V2) bool {
+func MagicHitRoll(attacker Entity, victim Entity) bool {
 	return hitRoll(EvasionRoll(victim), MagicPrecisionRoll(attacker))
 }
 
 // true = hit lands, false = hit does not land
-func PhysicalHitRoll(attacker Entity_V2, victim Entity_V2) (hit bool, evasion, precision int) {
+func PhysicalHitRoll(attacker Entity, victim Entity) (hit bool, evasion, precision int) {
 	evasion = EvasionRoll(victim)
 	precision = PhysicalPrecisionRoll(attacker)
 	hit = hitRoll(evasion, precision)
@@ -330,7 +330,7 @@ func hitRoll(evasionRoll, precisionRoll int) bool {
 	return evasionRoll < precisionRoll
 }
 
-func UnarmedDamage(attacker Entity_V2) int {
+func UnarmedDamage(attacker Entity) int {
 	if attacker.Stats() == nil {
 		return 0
 	}
@@ -338,7 +338,7 @@ func UnarmedDamage(attacker Entity_V2) int {
 	return RollD4(1) + statValue(attacker.Stats(), Stat_DamageBonus_Physical_Unarmed)
 }
 
-func PhysicalWeaponDamage(attacker Entity_V2, weapon Item_V2, victim Entity_V2) (totalDamage int, dmgType DamageType) {
+func PhysicalWeaponDamage(attacker Entity, weapon Item, victim Entity) (totalDamage int, dmgType DamageType) {
 	if attacker.Stats() == nil || weapon.Damaging() == nil || victim.Stats() == nil {
 		return 0, DamageType_Physical_Unarmed
 	}
@@ -353,7 +353,7 @@ func PhysicalWeaponDamage(attacker Entity_V2, weapon Item_V2, victim Entity_V2) 
 	return
 }
 
-func UnarmedAttack(attacker Entity_V2, victim Entity_V2) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
+func UnarmedAttack(attacker Entity, victim Entity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
 	hit, evasionRoll, precisionRoll = PhysicalHitRoll(attacker, victim)
 
 	if !hit {
@@ -366,7 +366,7 @@ func UnarmedAttack(attacker Entity_V2, victim Entity_V2) (hit bool, precisionRol
 	return
 }
 
-func PhysicalWeaponAttack(attacker Entity_V2, weapon Item_V2, victim Entity_V2) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
+func PhysicalWeaponAttack(attacker Entity, weapon Item, victim Entity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
 	hit, evasionRoll, precisionRoll = PhysicalHitRoll(attacker, victim)
 
 	if !hit {

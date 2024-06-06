@@ -122,7 +122,7 @@ func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventor
 	return menu
 }
 
-func (pim *PlayerInventoryMenu) drawItemSlot(screenX, screenY int, item model.Item_V2, style tcell.Style, v views.View) {
+func (pim *PlayerInventoryMenu) drawItemSlot(screenX, screenY int, item model.Item, style tcell.Style, v views.View) {
 	if item.Quantifiable() != nil {
 		ui.CreateSingleLineUILabel(
 			screenX,

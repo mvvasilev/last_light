@@ -13,7 +13,7 @@ import (
 
 const MaxNumberOfModifiers = 6
 
-type ItemSupplier func() Item_V2
+type ItemSupplier func() Item
 
 type LootTable struct {
 	table []ItemSupplier
@@ -31,7 +31,7 @@ func (igt *LootTable) Add(weight int, createItemFunction ItemSupplier) {
 	}
 }
 
-func (igt *LootTable) Generate() Item_V2 {
+func (igt *LootTable) Generate() Item {
 	return igt.table[rand.Intn(len(igt.table))]()
 }
 
@@ -264,7 +264,7 @@ func generateItemStatModifiers(itemMetaTypes []ItemMetaType, rarity ItemRarity) 
 
 // Each rarity gets an amount of generation points, the higher the rarity, the more points
 // Each stat modifier consumes points. The higher the stat bonus, the more points it consumes.
-func GenerateItemOfTypeAndRarity(prototype Item_V2, rarity ItemRarity) Item_V2 {
+func GenerateItemOfTypeAndRarity(prototype Item, rarity ItemRarity) Item {
 	if prototype.Named() == nil {
 		return prototype
 	}
@@ -275,8 +275,6 @@ func GenerateItemOfTypeAndRarity(prototype Item_V2, rarity ItemRarity) Item_V2 {
 
 	existingName := prototype.Named().Name
 	metaTypes := prototype.MetaTypes().Types
-
-	// points := pointPerRarity(rarity)
 	name, style := generateItemName(existingName, rarity)
 	statModifiers := generateItemStatModifiers(metaTypes, rarity)
 

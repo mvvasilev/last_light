@@ -6,12 +6,12 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-type Map_V2 interface {
+type Map interface {
 	Size() engine.Size
-	Tiles() [][]Tile_V2
-	ExploredTiles() map[engine.Position]Tile_V2
+	Tiles() [][]Tile
+	ExploredTiles() map[engine.Position]Tile
 	ExploredTileStyle() tcell.Style
-	DefaultTile() Tile_V2
+	DefaultTile() Tile
 
 	PlayerSpawnPoint() *Map_PlayerSpawnPointComponent
 	Rooms() *Map_RoomsComponent
@@ -37,10 +37,10 @@ type Map_PreviousLevelStaircaseComponent struct {
 
 type BaseMap struct {
 	size          engine.Size
-	tiles         [][]Tile_V2
-	exploredTiles map[engine.Position]Tile_V2
+	tiles         [][]Tile
+	exploredTiles map[engine.Position]Tile
 	exploredStyle tcell.Style
-	defaultTile   Tile_V2
+	defaultTile   Tile
 
 	playerSpawnPos *Map_PlayerSpawnPointComponent
 	rooms          *Map_RoomsComponent
@@ -48,11 +48,11 @@ type BaseMap struct {
 	prevLevel      *Map_PreviousLevelStaircaseComponent
 }
 
-func CreateMap(size engine.Size, tiles [][]Tile_V2, exploredStyle tcell.Style, defaultTile Tile_V2, components ...func(*BaseMap)) Map_V2 {
+func CreateMap(size engine.Size, tiles [][]Tile, exploredStyle tcell.Style, defaultTile Tile, components ...func(*BaseMap)) Map {
 	m := &BaseMap{
 		size:          size,
 		tiles:         tiles,
-		exploredTiles: make(map[engine.Position]Tile_V2, 0),
+		exploredTiles: make(map[engine.Position]Tile, 0),
 		exploredStyle: exploredStyle,
 		defaultTile:   defaultTile,
 	}
@@ -68,11 +68,11 @@ func (m *BaseMap) Size() engine.Size {
 	return m.size
 }
 
-func (m *BaseMap) Tiles() [][]Tile_V2 {
+func (m *BaseMap) Tiles() [][]Tile {
 	return m.tiles
 }
 
-func (m *BaseMap) ExploredTiles() map[engine.Position]Tile_V2 {
+func (m *BaseMap) ExploredTiles() map[engine.Position]Tile {
 	return m.exploredTiles
 }
 
@@ -80,7 +80,7 @@ func (m *BaseMap) ExploredTileStyle() tcell.Style {
 	return m.exploredStyle
 }
 
-func (m *BaseMap) DefaultTile() Tile_V2 {
+func (m *BaseMap) DefaultTile() Tile {
 	return m.defaultTile
 }
 
@@ -132,7 +132,7 @@ func Map_WithPreviousLevelStaircase(pos engine.Position) func(*BaseMap) {
 	}
 }
 
-func Map_SetTileAt(bm Map_V2, x int, y int, t Tile_V2) Tile_V2 {
+func Map_SetTileAt(bm Map, x int, y int, t Tile) Tile {
 	if !Map_IsInBounds(bm, x, y) {
 		return bm.DefaultTile()
 	}
@@ -142,7 +142,7 @@ func Map_SetTileAt(bm Map_V2, x int, y int, t Tile_V2) Tile_V2 {
 	return bm.Tiles()[y][x]
 }
 
-func Map_TileAt(bm Map_V2, x int, y int) Tile_V2 {
+func Map_TileAt(bm Map, x int, y int) Tile {
 	if !Map_IsInBounds(bm, x, y) {
 		return bm.DefaultTile()
 	}
@@ -156,7 +156,7 @@ func Map_TileAt(bm Map_V2, x int, y int) Tile_V2 {
 	return tile
 }
 
-func Map_IsInBounds(bm Map_V2, x, y int) bool {
+func Map_IsInBounds(bm Map, x, y int) bool {
 	if x < 0 || y < 0 {
 		return false
 	}
@@ -168,11 +168,11 @@ func Map_IsInBounds(bm Map_V2, x, y int) bool {
 	return true
 }
 
-func Map_ExploredTileAt(bm Map_V2, x, y int) Tile_V2 {
+func Map_ExploredTileAt(bm Map, x, y int) Tile {
 	return bm.ExploredTiles()[engine.PositionAt(x, y)]
 }
 
-func Map_MarkExplored(bm Map_V2, x, y int) {
+func Map_MarkExplored(bm Map, x, y int) {
 	if !Map_IsInBounds(bm, x, y) {
 		return
 	}

@@ -13,7 +13,7 @@ import (
 type UIItem struct {
 	id uuid.UUID
 
-	item model.Item_V2
+	item model.Item
 
 	window UIWindow
 
@@ -21,7 +21,7 @@ type UIItem struct {
 	engine.Sized
 }
 
-func CreateUIItem(x, y int, item model.Item_V2, style tcell.Style) *UIItem {
+func CreateUIItem(x, y int, item model.Item, style tcell.Style) *UIItem {
 	return &UIItem{
 		id:         uuid.New(),
 		item:       item,

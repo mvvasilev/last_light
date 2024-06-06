@@ -19,14 +19,14 @@ const (
 )
 
 type Tile_ItemComponent struct {
-	Item Item_V2
+	Item Item
 }
 
 type Tile_EntityComponent struct {
-	Entity Entity_V2
+	Entity Entity
 }
 
-type Tile_V2 interface {
+type Tile interface {
 	DefaultPresentation() (rune, tcell.Style)
 	Material() Material
 	Passable() bool
@@ -35,11 +35,11 @@ type Tile_V2 interface {
 
 	Item() *Tile_ItemComponent
 	RemoveItem()
-	WithItem(item Item_V2)
+	WithItem(item Item)
 
 	Entity() *Tile_EntityComponent
 	RemoveEntity()
-	WithEntity(entity Entity_V2)
+	WithEntity(entity Entity)
 }
 
 type BaseTile struct {
@@ -53,7 +53,7 @@ type BaseTile struct {
 	entity *Tile_EntityComponent
 }
 
-func CreateTileFromPrototype(prototype Tile_V2, components ...func(*BaseTile)) Tile_V2 {
+func CreateTileFromPrototype(prototype Tile, components ...func(*BaseTile)) Tile {
 	defaultSymbol, defaultStyle := prototype.DefaultPresentation()
 
 	return CreateTile(
@@ -67,7 +67,7 @@ func CreateTileFromPrototype(prototype Tile_V2, components ...func(*BaseTile)) T
 	)
 }
 
-func CreateTile(defaultSymbol rune, defaultStyle tcell.Style, material Material, passable, opaque, transparent bool, components ...func(*BaseTile)) Tile_V2 {
+func CreateTile(defaultSymbol rune, defaultStyle tcell.Style, material Material, passable, opaque, transparent bool, components ...func(*BaseTile)) Tile {
 	t := &BaseTile{
 		defaultSymbol: defaultSymbol,
 		defaultStyle:  defaultStyle,
@@ -112,7 +112,7 @@ func (t *BaseTile) RemoveItem() {
 	t.item = nil
 }
 
-func (t *BaseTile) WithItem(item Item_V2) {
+func (t *BaseTile) WithItem(item Item) {
 	t.item = &Tile_ItemComponent{
 		Item: item,
 	}
@@ -126,13 +126,13 @@ func (t *BaseTile) RemoveEntity() {
 	t.entity = nil
 }
 
-func (t *BaseTile) WithEntity(entity Entity_V2) {
+func (t *BaseTile) WithEntity(entity Entity) {
 	t.entity = &Tile_EntityComponent{
 		Entity: entity,
 	}
 }
 
-func Tile_WithEntity(entity Entity_V2) func(*BaseTile) {
+func Tile_WithEntity(entity Entity) func(*BaseTile) {
 	return func(bt *BaseTile) {
 		bt.entity = &Tile_EntityComponent{
 			Entity: entity,
@@ -140,7 +140,7 @@ func Tile_WithEntity(entity Entity_V2) func(*BaseTile) {
 	}
 }
 
-func Tile_WithItem(item Item_V2) func(*BaseTile) {
+func Tile_WithItem(item Item) func(*BaseTile) {
 	return func(bt *BaseTile) {
 		bt.item = &Tile_ItemComponent{
 			Item: item,
@@ -148,7 +148,7 @@ func Tile_WithItem(item Item_V2) func(*BaseTile) {
 	}
 }
 
-func Tile_Void() Tile_V2 {
+func Tile_Void() Tile {
 	return CreateTile(
 		' ',
 		tcell.StyleDefault,
@@ -157,7 +157,7 @@ func Tile_Void() Tile_V2 {
 	)
 }
 
-func Tile_Ground() Tile_V2 {
+func Tile_Ground() Tile {
 	return CreateTile(
 		'.',
 		tcell.StyleDefault,
@@ -166,7 +166,7 @@ func Tile_Ground() Tile_V2 {
 	)
 }
 
-func Tile_Rock() Tile_V2 {
+func Tile_Rock() Tile {
 	return CreateTile(
 		'█',
 		tcell.StyleDefault,
@@ -175,7 +175,7 @@ func Tile_Rock() Tile_V2 {
 	)
 }
 
-func Tile_Wall() Tile_V2 {
+func Tile_Wall() Tile {
 	return CreateTile(
 		'#',
 		tcell.StyleDefault.Background(tcell.ColorGray),
@@ -206,7 +206,7 @@ func Tile_Wall() Tile_V2 {
 // 	}
 // }
 
-func Tile_StaircaseDown() Tile_V2 {
+func Tile_StaircaseDown() Tile {
 	return CreateTile(
 		'≡',
 		tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Attributes(tcell.AttrBold),
@@ -215,7 +215,7 @@ func Tile_StaircaseDown() Tile_V2 {
 	)
 }
 
-func Tile_StaircaseUp() Tile_V2 {
+func Tile_StaircaseUp() Tile {
 	return CreateTile(
 		'^',
 		tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray).Attributes(tcell.AttrBold),
