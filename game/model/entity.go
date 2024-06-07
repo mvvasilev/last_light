@@ -73,6 +73,10 @@ type Entity_StatsHolderComponent struct {
 	// StatModifiers []StatModifier
 }
 
+type Entity_SpeedComponent struct {
+	Speed int
+}
+
 type Entity_HealthComponent struct {
 	Health    int
 	MaxHealth int
@@ -82,6 +86,7 @@ type Entity_HealthComponent struct {
 type Entity interface {
 	UniqueId() uuid.UUID
 
+	Speed() *Entity_SpeedComponent
 	Named() *Entity_NamedComponent
 	Described() *Entity_DescribedComponent
 	Presentable() *Entity_PresentableComponent
@@ -94,6 +99,7 @@ type Entity interface {
 type BaseEntity struct {
 	id uuid.UUID
 
+	speed       *Entity_SpeedComponent
 	named       *Entity_NamedComponent
 	described   *Entity_DescribedComponent
 	presentable *Entity_PresentableComponent
@@ -133,6 +139,10 @@ func (be *BaseEntity) Stats() *Entity_StatsHolderComponent {
 
 func (be *BaseEntity) HealthData() *Entity_HealthComponent {
 	return be.damageable
+}
+
+func (be *BaseEntity) Speed() *Entity_SpeedComponent {
+	return be.speed
 }
 
 func CreateEntity(components ...func(*BaseEntity)) *BaseEntity {
@@ -203,6 +213,14 @@ func WithHealthData(health, maxHealth int, isDead bool) func(e *BaseEntity) {
 			Health:    health,
 			MaxHealth: maxHealth,
 			IsDead:    isDead,
+		}
+	}
+}
+
+func WithSpeed(speed int) func(e *BaseEntity) {
+	return func(e *BaseEntity) {
+		e.speed = &Entity_SpeedComponent{
+			Speed: speed,
 		}
 	}
 }

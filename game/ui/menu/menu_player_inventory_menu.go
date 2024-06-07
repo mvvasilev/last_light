@@ -26,7 +26,11 @@ type PlayerInventoryMenu struct {
 	playerItems    *engine.ArbitraryDrawable
 	selectedItem   *engine.ArbitraryDrawable
 
+	equipmentSlots *engine.ArbitraryDrawable
+
 	selectedInventorySlot engine.Position
+
+	highlightStyle tcell.Style
 }
 
 func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventory, style tcell.Style, highlightStyle tcell.Style) *PlayerInventoryMenu {
@@ -72,10 +76,12 @@ func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventor
 		x+2, y+5, 3, 1, 8, 4, '┌', '─', '┬', '┐', '│', ' ', '│', '│', '├', '─', '┼', '┤', '└', '─', '┴', '┘', style, highlightStyle,
 	)
 
+	menu.highlightStyle = highlightStyle
+
 	menu.playerItems = engine.CreateDrawingInstructions(func(v views.View) {
-		for y := range playerInventory.Shape().Height() {
-			for x := range playerInventory.Shape().Width() {
-				item := playerInventory.ItemAt(x, y)
+		for y := range menu.inventory.Shape().Height() {
+			for x := range menu.inventory.Shape().Width() {
+				item := menu.inventory.ItemAt(x, y)
 				isHighlighted := x == menu.selectedInventorySlot.X() && y == menu.selectedInventorySlot.Y()
 
 				if item == nil {
@@ -85,7 +91,7 @@ func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventor
 							menu.inventoryGrid.Position().X()+1+x*4,
 							menu.inventoryGrid.Position().Y()+1+y*2,
 							"   ",
-							highlightStyle,
+							menu.highlightStyle,
 						).Draw(v)
 					}
 
@@ -95,7 +101,7 @@ func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventor
 				style := item.Style()
 
 				if isHighlighted {
-					style = highlightStyle
+					style = menu.highlightStyle
 				}
 
 				menu.drawItemSlot(
@@ -110,7 +116,7 @@ func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventor
 	})
 
 	menu.selectedItem = engine.CreateDrawingInstructions(func(v views.View) {
-		item := playerInventory.ItemAt(menu.selectedInventorySlot.XY())
+		item := menu.inventory.ItemAt(menu.selectedInventorySlot.XY())
 
 		if item == nil {
 			return
@@ -119,7 +125,35 @@ func CreatePlayerInventoryMenu(x, y int, playerInventory *model.EquippedInventor
 		ui.CreateUIItem(x+2, y+14, item, style).Draw(v)
 	})
 
+	menu.equipmentSlots = engine.CreateDrawingInstructions(func(v views.View) {
+		drawEquipmentSlot(menu.rightHandBox.Position().X()+1, menu.rightHandBox.Position().Y(), menu.inventory.AtSlot(model.EquippedSlotDominantHand), false, menu.highlightStyle, v)
+		drawEquipmentSlot(menu.leftHandBox.Position().X()+1, menu.leftHandBox.Position().Y(), menu.inventory.AtSlot(model.EquippedSlotOffhand), false, menu.highlightStyle, v)
+		drawEquipmentSlot(x+10+1, y+3, menu.inventory.AtSlot(model.EquippedSlotHead), false, menu.highlightStyle, v)
+		drawEquipmentSlot(x+10+4, y+3, menu.inventory.AtSlot(model.EquippedSlotChestplate), false, menu.highlightStyle, v)
+		drawEquipmentSlot(x+10+7, y+3, menu.inventory.AtSlot(model.EquippedSlotLeggings), false, menu.highlightStyle, v)
+		drawEquipmentSlot(x+10+10, y+3, menu.inventory.AtSlot(model.EquippedSlotShoes), false, menu.highlightStyle, v)
+	})
+
 	return menu
+}
+
+func drawEquipmentSlot(screenX, screenY int, item model.Item, highlighted bool, highlightStyle tcell.Style, v views.View) {
+	if item == nil {
+		return
+	}
+
+	style := item.Style()
+
+	if highlighted {
+		style = highlightStyle
+	}
+
+	ui.CreateSingleLineUILabel(
+		screenX,
+		screenY+1,
+		item.Icon(),
+		style,
+	).Draw(v)
 }
 
 func (pim *PlayerInventoryMenu) drawItemSlot(screenX, screenY int, item model.Item, style tcell.Style, v views.View) {
@@ -181,4 +215,5 @@ func (pim *PlayerInventoryMenu) Draw(v views.View) {
 	pim.inventoryGrid.Draw(v)
 	pim.playerItems.Draw(v)
 	pim.selectedItem.Draw(v)
+	pim.equipmentSlots.Draw(v)
 }

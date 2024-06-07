@@ -14,7 +14,7 @@ type pathNode struct {
 	f int // total cost of this node
 }
 
-func FindPath(from Position, to Position, isPassable func(x, y int) bool) *Path {
+func FindPath(from Position, to Position, maxDistance int, isPassable func(x, y int) bool) *Path {
 	var openList = make([]*pathNode, 0)
 	var closedList = make([]*pathNode, 0)
 
@@ -28,7 +28,15 @@ func FindPath(from Position, to Position, isPassable func(x, y int) bool) *Path 
 
 	var lastNode *pathNode
 
+	iteration := 0
+
 	for {
+
+		iteration++
+
+		if iteration >= maxDistance {
+			return nil
+		}
 
 		if len(openList) == 0 {
 			break

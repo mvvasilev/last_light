@@ -1,13 +1,15 @@
 package game
 
 import (
+	"fmt"
 	"log"
 	"mvvasilev/last_light/engine"
-	"os"
 	"time"
+
+	"github.com/gdamore/tcell/v2"
 )
 
-const TICK_RATE int64 = 50 // tick every 50ms ( 20 ticks per second )
+const TickRate int64 = 1 // tick every 50ms ( 20 ticks per second )
 
 type GameContext struct {
 	renderContext *engine.RenderContext
@@ -34,6 +36,8 @@ func (gc *GameContext) Run() {
 	lastLoop := time.Now()
 	lastTick := time.Now()
 
+	tickRateText := engine.CreateText(0, 1, 16, 1, "0ms", tcell.StyleDefault)
+
 	for {
 		deltaTime := 1 + time.Since(lastLoop).Microseconds()
 		lastLoop = time.Now()
@@ -42,12 +46,14 @@ func (gc *GameContext) Run() {
 			gc.game.Input(e)
 		}
 
-		if time.Since(lastTick).Milliseconds() >= TICK_RATE {
-			stop := !gc.game.Tick(deltaTime)
+		deltaTickTime := time.Since(lastTick).Milliseconds()
+		if deltaTickTime >= TickRate {
+			tickRateText = engine.CreateText(0, 1, 16, 1, fmt.Sprintf("%vms", deltaTickTime), tcell.StyleDefault)
+
+			stop := !gc.game.Tick(deltaTickTime)
 
 			if stop {
 				gc.renderContext.Stop()
-				os.Exit(0)
 				break
 			}
 
@@ -55,6 +61,8 @@ func (gc *GameContext) Run() {
 		}
 
 		drawables := gc.game.CollectDrawables()
+		drawables = append(drawables, tickRateText)
+
 		gc.renderContext.Draw(deltaTime, drawables)
 	}
 }

@@ -35,6 +35,60 @@ func CreateEquippedInventory() *EquippedInventory {
 	}
 }
 
+func BuildInventory(manips ...func(*EquippedInventory)) *EquippedInventory {
+	ei := CreateEquippedInventory()
+
+	for _, m := range manips {
+		m(ei)
+	}
+
+	return ei
+}
+
+func Inv_WithOffHand(item Item) func(*EquippedInventory) {
+	return func(ei *EquippedInventory) {
+		ei.offHand = item
+	}
+}
+
+func Inv_WithDominantHand(item Item) func(*EquippedInventory) {
+	return func(ei *EquippedInventory) {
+		ei.dominantHand = item
+	}
+}
+
+func Inv_WithHead(item Item) func(*EquippedInventory) {
+	return func(ei *EquippedInventory) {
+		ei.head = item
+	}
+}
+
+func Inv_WithChest(item Item) func(*EquippedInventory) {
+	return func(ei *EquippedInventory) {
+		ei.chestplate = item
+	}
+}
+
+func Inv_WithLegs(item Item) func(*EquippedInventory) {
+	return func(ei *EquippedInventory) {
+		ei.leggings = item
+	}
+}
+
+func Inv_WithShoes(item Item) func(*EquippedInventory) {
+	return func(ei *EquippedInventory) {
+		ei.shoes = item
+	}
+}
+
+func Inv_WithContents(items ...Item) func(*EquippedInventory) {
+	return func(ei *EquippedInventory) {
+		for _, i := range items {
+			ei.Push(i)
+		}
+	}
+}
+
 func (ei *EquippedInventory) AtSlot(slot EquippedSlot) Item {
 	switch slot {
 	case EquippedSlotOffhand:

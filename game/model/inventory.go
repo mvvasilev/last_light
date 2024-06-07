@@ -43,34 +43,44 @@ func (inv *BasicInventory) Push(i Item) (success bool) {
 
 	// Try to first find a matching item with capacity
 	for index, existingItem := range inv.contents {
-		if existingItem != nil && existingItem.Type() == itemType && existingItem.Quantifiable() != nil && i.Quantifiable() != nil {
+		if existingItem == nil {
+			continue
+		}
+
+		itemsAreSame := existingItem.Type() == itemType
+		bothItemsAreQuantifiable := existingItem.Quantifiable() != nil && i.Quantifiable() != nil
+
+		if itemsAreSame && bothItemsAreQuantifiable {
+			existingCurrent := existingItem.Quantifiable().CurrentQuantity
+			incomingCurrent := i.Quantifiable().CurrentQuantity
+			existingMax := existingItem.Quantifiable().MaxQuantity
+
 			// Cannot add even a single more item to this stack, skip it
 			if existingItem.Quantifiable().CurrentQuantity+1 > existingItem.Quantifiable().MaxQuantity {
 				continue
 			}
 
-			// Item has capacity, but is less than total new item stack. Split between existing, and a new stack.
-			if existingItem.Quantifiable().CurrentQuantity+i.Quantifiable().CurrentQuantity > existingItem.Quantifiable().MaxQuantity {
-				// get difference in quantities
-				diff := existingItem.Quantifiable().MaxQuantity - existingItem.Quantifiable().CurrentQuantity
+			total := existingCurrent + incomingCurrent
+			leftOver := engine.AbsInt(existingMax - total)
 
-				// set existing item quantity to max
-				existingItem.Quantifiable().CurrentQuantity = existingItem.Quantifiable().MaxQuantity
-
-				// set new item quantity to its current - diff
-				i.Quantifiable().CurrentQuantity -= i.Quantifiable().CurrentQuantity - diff
-
-				// Cannot pick up item, doing so would overflow the inventory
+			// Existing item is filled, and remained is turned into new stack
+			if leftOver > 0 {
+				// If we have don't have enough free slots, just say we can't push it
 				if index+1 >= inv.shape.Area() {
 					return false
 				}
+
+				existingItem.Quantifiable().CurrentQuantity = existingMax
+
+				i.Quantifiable().CurrentQuantity = leftOver
 
 				inv.contents[index+1] = i
 
 				return true
 			}
 
-			inv.contents[index] = i
+			// Otherwise, just set the existing item quantity to the total
+			existingItem.Quantifiable().CurrentQuantity = total
 
 			return true
 		}

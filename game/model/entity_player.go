@@ -19,6 +19,7 @@ func CreatePlayer(x, y int, playerBaseStats map[Stat]int) *Player {
 			WithInventory(CreateEquippedInventory()),
 			WithStats(playerBaseStats),
 			WithHealthData(0, 0, false),
+			WithSpeed(10),
 		),
 	}
 

@@ -9,6 +9,7 @@ func BenchmarkPathfinding(b *testing.B) {
 	path := FindPath(
 		PositionAt(0, 0),
 		PositionAt(16, 16),
+		20,
 		func(x, y int) bool {
 			if x > 6 && x <= 16 && y == 10 {
 				return false
