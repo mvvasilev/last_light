@@ -12,6 +12,7 @@ const (
 	InputContext_Play      = "play"
 	InputContext_Menu      = "menu"
 	InputContext_Inventory = "inventory"
+	InputContext_Look      = "look"
 )
 
 type InputKey string
@@ -25,10 +26,10 @@ type InputAction int
 const (
 	InputAction_None InputAction = iota
 
-	InputAction_MovePlayer_North
-	InputAction_MovePlayer_South
-	InputAction_MovePlayer_East
-	InputAction_MovePlayer_West
+	InputAction_Move_North
+	InputAction_Move_South
+	InputAction_Move_East
+	InputAction_Move_West
 
 	InputAction_Interact
 	InputAction_OpenInventory
@@ -36,6 +37,10 @@ const (
 	InputAction_OpenLogs
 	InputAction_DropItem
 	InputAction_InteractItem
+	InputAction_UseOn
+	InputAction_Describe
+	InputAction_EnterLookMode
+	InputAction_Shoot
 
 	InputAction_PauseGame
 
@@ -58,15 +63,16 @@ type InputSystem struct {
 func CreateInputSystemWithDefaultBindings() *InputSystem {
 	return &InputSystem{
 		keyBindings: map[InputKey]InputAction{
-			InputKeyOf(InputContext_Play, 0, tcell.KeyUp, 0):          InputAction_MovePlayer_North,
-			InputKeyOf(InputContext_Play, 0, tcell.KeyDown, 0):        InputAction_MovePlayer_South,
-			InputKeyOf(InputContext_Play, 0, tcell.KeyLeft, 0):        InputAction_MovePlayer_West,
-			InputKeyOf(InputContext_Play, 0, tcell.KeyRight, 0):       InputAction_MovePlayer_East,
+			InputKeyOf(InputContext_Play, 0, tcell.KeyUp, 0):          InputAction_Move_North,
+			InputKeyOf(InputContext_Play, 0, tcell.KeyDown, 0):        InputAction_Move_South,
+			InputKeyOf(InputContext_Play, 0, tcell.KeyLeft, 0):        InputAction_Move_West,
+			InputKeyOf(InputContext_Play, 0, tcell.KeyRight, 0):       InputAction_Move_East,
 			InputKeyOf(InputContext_Play, 0, tcell.KeyEsc, 0):         InputAction_PauseGame,
 			InputKeyOf(InputContext_Play, 0, tcell.KeyRune, 'i'):      InputAction_OpenInventory,
 			InputKeyOf(InputContext_Play, 0, tcell.KeyRune, 'l'):      InputAction_OpenLogs,
 			InputKeyOf(InputContext_Play, 0, tcell.KeyRune, 'e'):      InputAction_Interact,
 			InputKeyOf(InputContext_Play, 0, tcell.KeyRune, 'p'):      InputAction_PickUpItem,
+			InputKeyOf(InputContext_Play, 0, tcell.KeyRune, 'k'):      InputAction_EnterLookMode,
 			InputKeyOf(InputContext_Menu, 0, tcell.KeyESC, 0):         InputAction_Menu_Exit,
 			InputKeyOf(InputContext_Menu, 0, tcell.KeyLeft, 0):        InputAction_Menu_HighlightLeft,
 			InputKeyOf(InputContext_Menu, 0, tcell.KeyRight, 0):       InputAction_Menu_HighlightRight,
@@ -81,6 +87,13 @@ func CreateInputSystemWithDefaultBindings() *InputSystem {
 			InputKeyOf(InputContext_Inventory, 0, tcell.KeyRight, 0):  InputAction_Menu_HighlightRight,
 			InputKeyOf(InputContext_Inventory, 0, tcell.KeyUp, 0):     InputAction_Menu_HighlightUp,
 			InputKeyOf(InputContext_Inventory, 0, tcell.KeyDown, 0):   InputAction_Menu_HighlightDown,
+			InputKeyOf(InputContext_Look, 0, tcell.KeyUp, 0):          InputAction_Move_North,
+			InputKeyOf(InputContext_Look, 0, tcell.KeyDown, 0):        InputAction_Move_South,
+			InputKeyOf(InputContext_Look, 0, tcell.KeyLeft, 0):        InputAction_Move_West,
+			InputKeyOf(InputContext_Look, 0, tcell.KeyRight, 0):       InputAction_Move_East,
+			InputKeyOf(InputContext_Look, 0, tcell.KeyRune, 'd'):      InputAction_Describe,
+			InputKeyOf(InputContext_Look, 0, tcell.KeyRune, 'a'):      InputAction_Shoot,
+			InputKeyOf(InputContext_Look, 0, tcell.KeyESC, 0):         InputAction_Menu_Exit,
 		},
 	}
 }

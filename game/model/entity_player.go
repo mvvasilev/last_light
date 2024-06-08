@@ -8,6 +8,8 @@ import (
 
 type Player struct {
 	Entity
+
+	skipNextTurn bool
 }
 
 func CreatePlayer(x, y int, playerBaseStats map[Stat]int) *Player {
@@ -19,9 +21,11 @@ func CreatePlayer(x, y int, playerBaseStats map[Stat]int) *Player {
 			WithInventory(CreateEquippedInventory()),
 			WithStats(playerBaseStats),
 			WithHealthData(0, 0, false),
-			WithSpeed(10),
+			WithBehavior(100, nil),
 		),
 	}
+
+	p.Inventory().Push(Item_Bow())
 
 	p.HealthData().MaxHealth = BaseMaxHealth(p)
 	p.HealthData().Health = p.HealthData().MaxHealth
@@ -47,4 +51,16 @@ func (p *Player) Stats() *Entity_StatsHolderComponent {
 
 func (p *Player) HealthData() *Entity_HealthComponent {
 	return p.Entity.HealthData()
+}
+
+func (p *Player) DefaultSpeed() *Entity_BehaviorComponent {
+	return p.Entity.Behavior()
+}
+
+func (p *Player) SkipNextTurn(skip bool) {
+	p.skipNextTurn = skip
+}
+
+func (p *Player) IsNextTurnSkipped() bool {
+	return p.skipNextTurn
 }

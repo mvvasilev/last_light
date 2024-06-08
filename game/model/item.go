@@ -60,6 +60,7 @@ type Item_DescribedComponent struct {
 }
 
 type Item_DamagingComponent struct {
+	IsRanged   bool
 	DamageRoll func() (damage int, dmgType DamageType)
 }
 
@@ -176,9 +177,10 @@ func item_WithEquippable(slot EquippedSlot) func(*BaseItem) {
 	}
 }
 
-func item_WithDamaging(damageFunc func() (damage int, dmgType DamageType)) func(*BaseItem) {
+func item_WithDamaging(isRanged bool, damageFunc func() (damage int, dmgType DamageType)) func(*BaseItem) {
 	return func(bi *BaseItem) {
 		bi.damaging = &Item_DamagingComponent{
+			IsRanged:   isRanged,
 			DamageRoll: damageFunc,
 		}
 	}

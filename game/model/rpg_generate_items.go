@@ -13,7 +13,51 @@ import (
 
 const MaxNumberOfModifiers = 6
 
+type RarityTable struct {
+	table []ItemRarity
+}
+
+func CreateRarityTable() *RarityTable {
+	return &RarityTable{
+		table: make([]ItemRarity, 0),
+	}
+}
+
+func (igt *RarityTable) Add(weight int, rarity ItemRarity) {
+	for range weight {
+		igt.table = append(igt.table, rarity)
+	}
+}
+
+func (igt *RarityTable) Generate() ItemRarity {
+	return igt.table[rand.Intn(len(igt.table))]
+}
+
 type ItemSupplier func() Item
+
+func EmptyItemSupplier() ItemSupplier {
+	return func() Item {
+		return nil
+	}
+}
+
+func ItemSupplierOf(item Item) ItemSupplier {
+	return func() Item {
+		return item
+	}
+}
+
+func ItemSupplierOfGeneratedPrototype(prototype Item, rarities map[int]ItemRarity) ItemSupplier {
+	rarityTable := CreateRarityTable()
+
+	for k, v := range rarities {
+		rarityTable.Add(k, v)
+	}
+
+	return func() Item {
+		return GenerateItemOfTypeAndRarity(prototype, rarityTable.Generate())
+	}
+}
 
 type LootTable struct {
 	table []ItemSupplier
@@ -285,7 +329,7 @@ func GenerateItemOfTypeAndRarity(prototype Item, rarity ItemRarity) Item {
 		prototype.Style(),
 		item_WithName(name, style),
 		item_WithDescription(prototype.Described().Description, prototype.Described().Style),
-		item_WithDamaging(prototype.Damaging().DamageRoll),
+		item_WithDamaging(prototype.Damaging().IsRanged, prototype.Damaging().DamageRoll),
 		item_WithEquippable(prototype.Equippable().Slot),
 		item_WithStatModifiers(statModifiers),
 		item_WithMetaTypes(metaTypes),

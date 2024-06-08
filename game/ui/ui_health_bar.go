@@ -53,32 +53,47 @@ func (uihp *UIHealthBar) Draw(v views.View) {
 
 	uihp.window.Draw(v)
 
-	stages := []rune{'█', '▓', '▒', '░'} // 0 = 1.0, 1 = 0.75, 2 = 0.5, 3 = 0.25
+	stages := []string{"█", "▓", "▒", "░"} // 0 = 1.0, 1 = 0.75, 2 = 0.5, 3 = 0.25
 
 	percentage := (float64(w) - 2.0) * (float64(uihp.player.HealthData().Health) / float64(uihp.player.HealthData().MaxHealth))
 
 	whole := math.Trunc(percentage)
 	last := percentage - whole
 
+	hpBar := ""
 	hpStyle := tcell.StyleDefault.Foreground(tcell.ColorIndianRed)
 
-	for i := range int(whole) {
-		v.SetContent(x+1+i, y+1, stages[0], nil, hpStyle)
+	for range int(whole) {
+		hpBar += stages[0]
 	}
 
-	if last > 0.0 {
+	lastRune := func() string {
+		if last <= 0.0 {
+			return ""
+		}
+
 		if last <= 0.25 {
-			v.SetContent(x+1+int(whole), y+1, stages[3], nil, hpStyle)
+			return stages[3]
 		}
 
 		if last <= 0.50 {
-			v.SetContent(x+1+int(whole), y+1, stages[2], nil, hpStyle)
+			return stages[2]
 		}
 
 		if last <= 0.75 {
-			v.SetContent(x+1+int(whole), y+1, stages[1], nil, hpStyle)
+			return stages[1]
 		}
+
+		if last <= 1.00 {
+			return stages[0]
+		}
+
+		return ""
 	}
+
+	hpBar += lastRune()
+
+	engine.DrawText(x+1, y+1, hpBar, hpStyle, v)
 
 	hpText := fmt.Sprintf("%v/%v", uihp.player.HealthData().Health, uihp.player.HealthData().MaxHealth)
 

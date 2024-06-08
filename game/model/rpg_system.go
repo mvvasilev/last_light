@@ -46,7 +46,8 @@ const (
 	Stat_ResistanceBonus_Magic_Acid     Stat = 280
 	Stat_ResistanceBonus_Magic_Poison   Stat = 290
 
-	Stat_MaxHealthBonus Stat = 140
+	Stat_MaxHealthBonus Stat = 1000
+	Stat_SpeedBonus     Stat = 1010
 )
 
 func StatLongName(stat Stat) string {
@@ -273,6 +274,16 @@ func statValue(stats *Entity_StatsHolderComponent, stat Stat) int {
 	return stats.BaseStats[stat]
 }
 
+func statModifierValue(statModifiers []StatModifier, stat Stat) int {
+	for _, sm := range statModifiers {
+		if sm.Stat == stat {
+			return sm.Bonus
+		}
+	}
+
+	return 0
+}
+
 // Base Max Health is determined from constitution:
 // 5*Constitution + Max Health Bonus
 func BaseMaxHealth(entity Entity) int {
@@ -340,7 +351,7 @@ func UnarmedDamage(attacker Entity) int {
 
 func PhysicalWeaponDamage(attacker Entity, weapon Item, victim Entity) (totalDamage int, dmgType DamageType) {
 	if attacker.Stats() == nil || weapon.Damaging() == nil || victim.Stats() == nil {
-		return 0, DamageType_Physical_Unarmed
+		return UnarmedDamage(attacker), DamageType_Physical_Unarmed
 	}
 
 	totalDamage, dmgType = weapon.Damaging().DamageRoll()
@@ -349,6 +360,14 @@ func PhysicalWeaponDamage(attacker Entity, weapon Item, victim Entity) (totalDam
 	dmgResistStat := DamageTypeToResistanceStat(dmgType)
 
 	totalDamage = totalDamage + statValue(attacker.Stats(), bonusDmgStat) - statValue(victim.Stats(), dmgResistStat)
+
+	if weapon.StatModifier() != nil {
+		totalDamage += statModifierValue(weapon.StatModifier().StatModifiers, bonusDmgStat)
+	}
+
+	if totalDamage <= 0 {
+		return 0, dmgType
+	}
 
 	return
 }

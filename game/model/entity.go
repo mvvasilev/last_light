@@ -70,11 +70,11 @@ type Entity_EquippedComponent struct {
 
 type Entity_StatsHolderComponent struct {
 	BaseStats map[Stat]int
-	// StatModifiers []StatModifier
 }
 
-type Entity_SpeedComponent struct {
-	Speed int
+type Entity_BehaviorComponent struct {
+	Speed    int
+	Behavior func() (complete, requeue bool)
 }
 
 type Entity_HealthComponent struct {
@@ -83,10 +83,14 @@ type Entity_HealthComponent struct {
 	IsDead    bool
 }
 
+type Entity_DropTableComponent struct {
+	DropTable *LootTable
+}
+
 type Entity interface {
 	UniqueId() uuid.UUID
 
-	Speed() *Entity_SpeedComponent
+	Behavior() *Entity_BehaviorComponent
 	Named() *Entity_NamedComponent
 	Described() *Entity_DescribedComponent
 	Presentable() *Entity_PresentableComponent
@@ -94,12 +98,13 @@ type Entity interface {
 	Equipped() *Entity_EquippedComponent
 	Stats() *Entity_StatsHolderComponent
 	HealthData() *Entity_HealthComponent
+	DropTable() *Entity_DropTableComponent
 }
 
 type BaseEntity struct {
 	id uuid.UUID
 
-	speed       *Entity_SpeedComponent
+	behavior    *Entity_BehaviorComponent
 	named       *Entity_NamedComponent
 	described   *Entity_DescribedComponent
 	presentable *Entity_PresentableComponent
@@ -107,6 +112,7 @@ type BaseEntity struct {
 	equipped    *Entity_EquippedComponent
 	stats       *Entity_StatsHolderComponent
 	damageable  *Entity_HealthComponent
+	dropTable   *Entity_DropTableComponent
 }
 
 func (be *BaseEntity) UniqueId() uuid.UUID {
@@ -141,8 +147,12 @@ func (be *BaseEntity) HealthData() *Entity_HealthComponent {
 	return be.damageable
 }
 
-func (be *BaseEntity) Speed() *Entity_SpeedComponent {
-	return be.speed
+func (be *BaseEntity) Behavior() *Entity_BehaviorComponent {
+	return be.behavior
+}
+
+func (be *BaseEntity) DropTable() *Entity_DropTableComponent {
+	return be.dropTable
 }
 
 func CreateEntity(components ...func(*BaseEntity)) *BaseEntity {
@@ -202,7 +212,6 @@ func WithStats(baseStats map[Stat]int, statModifiers ...StatModifier) func(e *Ba
 	return func(e *BaseEntity) {
 		e.stats = &Entity_StatsHolderComponent{
 			BaseStats: baseStats,
-			// StatModifiers: statModifiers,
 		}
 	}
 }
@@ -217,10 +226,27 @@ func WithHealthData(health, maxHealth int, isDead bool) func(e *BaseEntity) {
 	}
 }
 
-func WithSpeed(speed int) func(e *BaseEntity) {
+func WithBehavior(speed int, behavior func(npc Entity) (complete, requeue bool)) func(e *BaseEntity) {
 	return func(e *BaseEntity) {
-		e.speed = &Entity_SpeedComponent{
+		e.behavior = &Entity_BehaviorComponent{
 			Speed: speed,
+			Behavior: func() (complete bool, requeue bool) {
+				return behavior(e)
+			},
+		}
+	}
+}
+
+func WithDropTable(table map[int]ItemSupplier) func(e *BaseEntity) {
+	dropTable := CreateLootTable()
+
+	for k, v := range table {
+		dropTable.Add(k, v)
+	}
+
+	return func(e *BaseEntity) {
+		e.dropTable = &Entity_DropTableComponent{
+			DropTable: dropTable,
 		}
 	}
 }

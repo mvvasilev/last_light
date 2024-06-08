@@ -1,7 +1,10 @@
 package model
 
 import (
+	"slices"
+
 	"github.com/gdamore/tcell/v2"
+	"github.com/google/uuid"
 )
 
 type Material uint
@@ -23,7 +26,7 @@ type Tile_ItemComponent struct {
 }
 
 type Tile_EntityComponent struct {
-	Entity Entity
+	Entities []Entity
 }
 
 type Tile interface {
@@ -37,9 +40,9 @@ type Tile interface {
 	RemoveItem()
 	WithItem(item Item)
 
-	Entity() *Tile_EntityComponent
-	RemoveEntity()
-	WithEntity(entity Entity)
+	Entities() *Tile_EntityComponent
+	RemoveEntity(uuid uuid.UUID)
+	AddEntity(entity Entity)
 }
 
 type BaseTile struct {
@@ -49,8 +52,8 @@ type BaseTile struct {
 	material                      Material
 	passable, opaque, transparent bool
 
-	item   *Tile_ItemComponent
-	entity *Tile_EntityComponent
+	item     *Tile_ItemComponent
+	entities *Tile_EntityComponent
 }
 
 func CreateTileFromPrototype(prototype Tile, components ...func(*BaseTile)) Tile {
@@ -118,24 +121,46 @@ func (t *BaseTile) WithItem(item Item) {
 	}
 }
 
-func (t *BaseTile) Entity() *Tile_EntityComponent {
-	return t.entity
+func (t *BaseTile) Entities() *Tile_EntityComponent {
+	return t.entities
 }
 
-func (t *BaseTile) RemoveEntity() {
-	t.entity = nil
-}
-
-func (t *BaseTile) WithEntity(entity Entity) {
-	t.entity = &Tile_EntityComponent{
-		Entity: entity,
+func (t *BaseTile) RemoveEntity(uuid uuid.UUID) {
+	if t.entities == nil {
+		return
 	}
+
+	t.entities.Entities = slices.DeleteFunc(t.entities.Entities, func(e Entity) bool { return e.UniqueId() == uuid })
+}
+
+func (t *BaseTile) AddEntity(entity Entity) {
+	if t.entities == nil {
+		t.entities = &Tile_EntityComponent{
+			Entities: []Entity{
+				entity,
+			},
+		}
+
+		return
+	}
+
+	t.entities.Entities = append(t.entities.Entities, entity)
 }
 
 func Tile_WithEntity(entity Entity) func(*BaseTile) {
 	return func(bt *BaseTile) {
-		bt.entity = &Tile_EntityComponent{
-			Entity: entity,
+		bt.entities = &Tile_EntityComponent{
+			Entities: []Entity{
+				entity,
+			},
+		}
+	}
+}
+
+func Tile_WithEntities(entities []Entity) func(*BaseTile) {
+	return func(bt *BaseTile) {
+		bt.entities = &Tile_EntityComponent{
+			Entities: entities,
 		}
 	}
 }

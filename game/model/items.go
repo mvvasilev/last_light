@@ -175,7 +175,7 @@ func Item_Bow() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Bow", tcell.StyleDefault),
 		item_WithDescription("Deals 1d8 Piercing damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(true, func() (damage int, dmgType DamageType) {
 			return RollD8(1), DamageType_Physical_Piercing
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -192,7 +192,7 @@ func Item_Longsword() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Longsword", tcell.StyleDefault),
 		item_WithDescription("Deals 1d8 Slashing damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD8(1), DamageType_Physical_Slashing
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -209,7 +209,7 @@ func Item_Club() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Club", tcell.StyleDefault),
 		item_WithDescription("Deals 1d8 Bludgeoning damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD8(1), DamageType_Physical_Bludgeoning
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -226,7 +226,7 @@ func Item_Dagger() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Dagger", tcell.StyleDefault),
 		item_WithDescription("Deals 1d6 Piercing damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Piercing
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -241,9 +241,9 @@ func Item_Handaxe() Item {
 		" ─╗",
 		tcell.StyleDefault.Foreground(tcell.ColorSilver),
 		item_WithQuantity(1, 1),
-		item_WithName("Dagger", tcell.StyleDefault),
+		item_WithName("Handaxe", tcell.StyleDefault),
 		item_WithDescription("Deals 1d6 Slashing damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Piercing
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -260,7 +260,7 @@ func Item_Javelin() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Javelin", tcell.StyleDefault),
 		item_WithDescription("Deals 1d6 Piercing damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Piercing
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -277,7 +277,7 @@ func Item_LightHammer() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Light Hammer", tcell.StyleDefault),
 		item_WithDescription("Deals 1d6 Bludgeoning damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Bludgeoning
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -294,7 +294,7 @@ func Item_Mace() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Mace", tcell.StyleDefault),
 		item_WithDescription("Deals 1d6 Bludgeoning damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Bludgeoning
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -311,7 +311,7 @@ func Item_Quarterstaff() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Quarterstaff", tcell.StyleDefault),
 		item_WithDescription("Deals 1d6 Bludgeoning damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Bludgeoning
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -328,7 +328,7 @@ func Item_Sickle() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Sickle", tcell.StyleDefault),
 		item_WithDescription("Deals 1d6 Slashing damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD6(1), DamageType_Physical_Slashing
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
@@ -345,7 +345,7 @@ func Item_Spear() Item {
 		item_WithQuantity(1, 1),
 		item_WithName("Spear", tcell.StyleDefault),
 		item_WithDescription("Deals 1d8 Piercing damage", tcell.StyleDefault),
-		item_WithDamaging(func() (damage int, dmgType DamageType) {
+		item_WithDamaging(false, func() (damage int, dmgType DamageType) {
 			return RollD8(1), DamageType_Physical_Piercing
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),

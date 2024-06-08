@@ -1,7 +1,6 @@
 package state
 
 import (
-	"fmt"
 	"math/rand"
 	"mvvasilev/last_light/engine"
 	"mvvasilev/last_light/game/model"
@@ -51,11 +50,11 @@ func CreatePlayingState(turnSystem *systems.TurnSystem, inputSystem *systems.Inp
 		playerStats,
 	)
 
-	s.turnSystem.Schedule(10, func() (complete bool, requeue bool) {
+	s.turnSystem.Schedule(s.player.DefaultSpeed().Speed, func() (complete bool, requeue bool) {
 		requeue = true
 		complete = false
 
-		if s.player.HealthData().IsDead {
+		if s.player.HealthData().Health <= 0 || s.player.HealthData().IsDead {
 			s.nextGameState = CreateGameOverState(inputSystem)
 		}
 
@@ -64,39 +63,33 @@ func CreatePlayingState(turnSystem *systems.TurnSystem, inputSystem *systems.Inp
 			s.nextGameState = PauseGame(s, s.turnSystem, s.inputSystem)
 		case systems.InputAction_OpenInventory:
 			s.nextGameState = CreateInventoryScreenState(s.eventLog, s.dungeon, s.inputSystem, s.turnSystem, s.player, s)
+		case systems.InputAction_EnterLookMode:
+			s.viewShortLogs = !s.viewShortLogs
+			s.nextGameState = CreateLookState(s, s.eventLog, s.dungeon, s.inputSystem, s.turnSystem, s.player)
 		case systems.InputAction_PickUpItem:
 			complete = PickUpItemUnderPlayer(s.eventLog, s.dungeon, s.player)
 		case systems.InputAction_Interact:
 			complete = s.InteractBelowPlayer()
 		case systems.InputAction_OpenLogs:
 			s.viewShortLogs = !s.viewShortLogs
-		case systems.InputAction_MovePlayer_East:
+		case systems.InputAction_Move_East:
 			complete = s.MovePlayer(model.East)
-		case systems.InputAction_MovePlayer_West:
+		case systems.InputAction_Move_West:
 			complete = s.MovePlayer(model.West)
-		case systems.InputAction_MovePlayer_North:
+		case systems.InputAction_Move_North:
 			complete = s.MovePlayer(model.North)
-		case systems.InputAction_MovePlayer_South:
+		case systems.InputAction_Move_South:
 			complete = s.MovePlayer(model.South)
 		default:
 		}
 
+		if s.player.IsNextTurnSkipped() {
+			s.player.SkipNextTurn(false)
+			complete = true
+		}
+
 		return
 	})
-
-	// s.someNPC = model.CreateEntity(
-	// 	model.WithPosition(s.dungeon.CurrentLevel().Ground().NextLevelStaircase().Position),
-	// 	model.WithName("NPC"),
-	// 	model.WithPresentation('n', tcell.StyleDefault),
-	// 	model.WithStats(model.RandomStats(21, 1, 20, []model.Stat{model.Stat_Attributes_Strength, model.Stat_Attributes_Constitution, model.Stat_Attributes_Intelligence, model.Stat_Attributes_Dexterity})),
-	// 	model.WithHealthData(20, 20, false),
-	// )
-
-	// s.turnSystem.Schedule(20, func() (complete bool, requeue bool) {
-	// 	s.CalcPathToPlayerAndMove()
-
-	// 	return true, true
-	// })
 
 	s.eventLog = engine.CreateGameEventLog(100)
 
@@ -107,25 +100,24 @@ func CreatePlayingState(turnSystem *systems.TurnSystem, inputSystem *systems.Inp
 
 	entityTable := model.CreateEntityTable()
 
-	entityTable.Add(1, func(x, y int) model.Entity { return model.Entity_Imp(x, y) })
+	entityTable.Add(1, func(x, y int) model.Entity {
+		return model.Entity_Imp(x, y, model.HostileNPCBehavior(s.eventLog, s.dungeon, s.player))
+	})
+	entityTable.Add(1, func(x, y int) model.Entity {
+		return model.Entity_SkeletalKnight(x, y, model.HostileNPCBehavior(s.eventLog, s.dungeon, s.player))
+	})
+	entityTable.Add(1, func(x, y int) model.Entity {
+		return model.Entity_SkeletalWarrior(x, y, model.HostileNPCBehavior(s.eventLog, s.dungeon, s.player))
+	})
 
 	s.npcs = SpawnNPCs(s.dungeon, 7, entityTable)
 
 	for _, npc := range s.npcs {
-		speed := 10
-
-		if npc.Speed() != nil {
-			speed = npc.Speed().Speed
+		if npc.Behavior() != nil {
+			speed := npc.Behavior().Speed
+			s.turnSystem.Schedule(speed, npc.Behavior().Behavior)
 		}
-
-		s.turnSystem.Schedule(speed, func() (complete bool, requeue bool) {
-			CalcPathToPlayerAndMove(25, s.eventLog, s.dungeon, npc, s.player)
-
-			return true, true
-		})
 	}
-
-	// s.dungeon.CurrentLevel().AddEntity(s.someNPC)
 
 	s.viewport = engine.CreateViewport(
 		engine.PositionAt(0, 0),
@@ -170,7 +162,7 @@ func (ps *PlayingState) MovePlayer(direction model.Direction) (success bool) {
 
 	newPlayerPos := ps.player.Position().WithOffset(model.MovementDirectionOffset(direction))
 
-	ent := ps.dungeon.CurrentLevel().EntityAt(newPlayerPos.XY())
+	ent := ps.dungeon.CurrentLevel().EntitiesAt(newPlayerPos.XY())[0]
 
 	// We are moving into an entity with health data. Attack it.
 	if ent != nil && ent.HealthData() != nil {
@@ -179,7 +171,7 @@ func (ps *PlayingState) MovePlayer(direction model.Direction) (success bool) {
 			return false
 		}
 
-		ExecuteAttack(ps.eventLog, ps.player, ent)
+		model.ExecuteAttack(ps.eventLog, ps.player, ent)
 
 		return true
 	}
@@ -192,50 +184,9 @@ func (ps *PlayingState) MovePlayer(direction model.Direction) (success bool) {
 
 		return true
 	} else {
-		ps.eventLog.Log("You bump into an impassable object" + model.DirectionName(direction))
+		ps.eventLog.Log("You bump into an impassable object")
 
 		return false
-	}
-}
-
-func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim model.Entity) {
-	hit, precision, evasion, dmg, dmgType := CalculateAttack(attacker, victim)
-
-	attackerName := "Unknown"
-
-	if attacker.Named() != nil {
-		attackerName = attacker.Named().Name
-	}
-
-	victimName := "Unknown"
-
-	if victim.Named() != nil {
-		victimName = victim.Named().Name
-	}
-
-	if !hit {
-		eventLog.Log(fmt.Sprintf("%s attacked %s, but missed ( %v Evasion vs %v Precision)", attackerName, victimName, evasion, precision))
-		return
-	}
-
-	victim.HealthData().Health -= dmg
-
-	if victim.HealthData().Health <= 0 {
-		victim.HealthData().IsDead = true
-		eventLog.Log(fmt.Sprintf("%s attacked %s, and was victorious ( %v Evasion vs %v Precision)", attackerName, victimName, evasion, precision))
-		return
-	}
-
-	eventLog.Log(fmt.Sprintf("%s attacked %s, and hit for %v %v damage", attackerName, victimName, dmg, model.DamageTypeName(dmgType)))
-}
-
-func CalculateAttack(attacker, victim model.Entity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType model.DamageType) {
-	if attacker.Equipped() != nil && attacker.Equipped().Inventory.AtSlot(model.EquippedSlotDominantHand) != nil {
-		weapon := attacker.Equipped().Inventory.AtSlot(model.EquippedSlotDominantHand)
-
-		return model.PhysicalWeaponAttack(attacker, weapon, victim)
-	} else {
-		return model.UnarmedAttack(attacker, victim)
 	}
 }
 
@@ -356,101 +307,6 @@ func PickUpItemUnderPlayer(eventLog *engine.GameEventLog, dungeon *model.Dungeon
 	return true
 }
 
-func HasLineOfSight(dungeon *model.Dungeon, start, end engine.Position) bool {
-	positions := engine.CastRay(start, end)
-
-	for _, p := range positions {
-		if dungeon.CurrentLevel().IsGroundTileOpaque(p.XY()) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func WithinHitRange(pos engine.Position, otherPos engine.Position) bool {
-	return pos.WithOffset(-1, 0) == otherPos || pos.WithOffset(+1, 0) == otherPos || pos.WithOffset(0, -1) == otherPos || pos.WithOffset(0, +1) == otherPos
-}
-
-func CalcPathToPlayerAndMove(simulationDistance int, eventLog *engine.GameEventLog, dungeon *model.Dungeon, npc model.Entity, player *model.Player) {
-	if npc.Positioned().Position.DistanceSquared(player.Position()) > simulationDistance*simulationDistance {
-		return
-	}
-
-	if npc.HealthData().IsDead {
-		dungeon.CurrentLevel().DropEntity(npc.UniqueId())
-		return
-	}
-
-	playerVisibleAndInRange := false
-
-	if npc.Positioned().Position.DistanceSquared(player.Position()) < 144 && HasLineOfSight(dungeon, npc.Positioned().Position, player.Position()) {
-		playerVisibleAndInRange = true
-	}
-
-	if !playerVisibleAndInRange {
-		randomMove := model.Direction(engine.RandInt(int(model.DirectionNone), int(model.East)))
-
-		nextPos := npc.Positioned().Position
-
-		switch randomMove {
-		case model.North:
-			nextPos = nextPos.WithOffset(0, -1)
-		case model.South:
-			nextPos = nextPos.WithOffset(0, +1)
-		case model.West:
-			nextPos = nextPos.WithOffset(-1, 0)
-		case model.East:
-			nextPos = nextPos.WithOffset(+1, 0)
-		default:
-			return
-		}
-
-		if dungeon.CurrentLevel().IsTilePassable(nextPos.XY()) {
-			dungeon.CurrentLevel().MoveEntityTo(
-				npc.UniqueId(),
-				nextPos.X(),
-				nextPos.Y(),
-			)
-		}
-
-		return
-	}
-
-	if WithinHitRange(npc.Positioned().Position, player.Position()) {
-		ExecuteAttack(eventLog, npc, player)
-	}
-
-	pathToPlayer := engine.FindPath(
-		npc.Positioned().Position,
-		player.Position(),
-		12,
-		func(x, y int) bool {
-			if x == player.Position().X() && y == player.Position().Y() {
-				return true
-			}
-
-			return dungeon.CurrentLevel().IsTilePassable(x, y)
-		},
-	)
-
-	if pathToPlayer == nil {
-		return
-	}
-
-	nextPos, hasNext := pathToPlayer.Next()
-
-	if !hasNext {
-		return
-	}
-
-	if nextPos.Equals(player.Position()) {
-		return
-	}
-
-	dungeon.CurrentLevel().MoveEntityTo(npc.UniqueId(), nextPos.X(), nextPos.Y())
-}
-
 func (ps *PlayingState) OnTick(dt int64) (nextState GameState) {
 	ps.nextGameState = ps
 
@@ -477,8 +333,9 @@ func (ps *PlayingState) CollectDrawables() []engine.Drawable {
 			tile := visibilityMap[engine.PositionAt(x, y)]
 
 			if tile != nil {
-				if tile.Entity() != nil {
-					return tile.Entity().Entity.Presentable().Rune, tile.Entity().Entity.Presentable().Style
+
+				if tile.Entities() != nil {
+					return tile.Entities().Entities[0].Presentable().Rune, tile.Entities().Entities[0].Presentable().Style
 				}
 
 				if tile.Item() != nil {
