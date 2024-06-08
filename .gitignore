@@ -3,3 +3,5 @@ last_light.exe
 
 *.prof
 __debug_bin*
+
+web/last-light.wasm
