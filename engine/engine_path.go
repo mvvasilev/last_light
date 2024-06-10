@@ -38,3 +38,20 @@ func (p *Path) Next() (current Position, hasNext bool) {
 
 	return p.CurrentPosition(), true
 }
+
+func LinePath(from, to Position) *Path {
+	points := make([]Position, 0)
+	n := float64(from.Distance(to))
+
+	for step := 0.0; step <= n; step += 1.0 {
+		t := 0.0
+
+		if n != 0 {
+			t = step / n
+		}
+
+		points = append(points, LerpPositions(from, to, t))
+	}
+
+	return CreatePath(from, to, points)
+}

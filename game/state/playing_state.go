@@ -64,7 +64,7 @@ func CreatePlayingState(turnSystem *systems.TurnSystem, inputSystem *systems.Inp
 		case systems.InputAction_OpenInventory:
 			s.nextGameState = CreateInventoryScreenState(s.eventLog, s.dungeon, s.inputSystem, s.turnSystem, s.player, s)
 		case systems.InputAction_EnterLookMode:
-			s.viewShortLogs = !s.viewShortLogs
+			s.viewShortLogs = false
 			s.nextGameState = CreateLookState(s, s.eventLog, s.dungeon, s.inputSystem, s.turnSystem, s.player)
 		case systems.InputAction_PickUpItem:
 			complete = PickUpItemUnderPlayer(s.eventLog, s.dungeon, s.player)
@@ -162,7 +162,7 @@ func (ps *PlayingState) MovePlayer(direction model.Direction) (success bool) {
 
 	newPlayerPos := ps.player.Position().WithOffset(model.MovementDirectionOffset(direction))
 
-	ent := ps.dungeon.CurrentLevel().EntitiesAt(newPlayerPos.XY())[0]
+	ent := ps.dungeon.CurrentLevel().EntityAt(newPlayerPos.XY())
 
 	// We are moving into an entity with health data. Attack it.
 	if ent != nil && ent.HealthData() != nil {
@@ -334,8 +334,8 @@ func (ps *PlayingState) CollectDrawables() []engine.Drawable {
 
 			if tile != nil {
 
-				if tile.Entities() != nil {
-					return tile.Entities().Entities[0].Presentable().Rune, tile.Entities().Entities[0].Presentable().Style
+				if tile.Entity() != nil {
+					return tile.Entity().Entity.Presentable().Rune, tile.Entity().Entity.Presentable().Style
 				}
 
 				if tile.Item() != nil {

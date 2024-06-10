@@ -9,6 +9,7 @@ import (
 type Player struct {
 	Entity
 
+	inLookState  bool
 	skipNextTurn bool
 }
 
@@ -63,4 +64,12 @@ func (p *Player) SkipNextTurn(skip bool) {
 
 func (p *Player) IsNextTurnSkipped() bool {
 	return p.skipNextTurn
+}
+
+func (p *Player) IsInLookState() bool {
+	return p.inLookState
+}
+
+func (p *Player) SetInLookState(lookState bool) {
+	p.inLookState = lookState
 }

@@ -5,11 +5,86 @@ import (
 	"mvvasilev/last_light/engine"
 )
 
-// func ProjectileBehavior() func(npc Entity) (complete bool, requeue bool) {
-// 	return func(npc Entity) (complete bool, requeue bool) {
+type ProjectileSprite rune
 
-// 	}
-// }
+//
+// \  |  /
+//
+// ─  +  ─
+//
+// /  |  \
+
+const (
+	ProjectileSprite_NorthSouth         ProjectileSprite = '|'
+	ProjectileSprite_EastWest                            = '─'
+	ProjectileSprite_NorthEastSouthWest                  = '/'
+	ProjectileSprite_NorthWestSouthEast                  = '\\'
+)
+
+func ProjectileBehavior(eventLog *engine.GameEventLog, dungeon *Dungeon) func(npc Entity) (complete bool, requeue bool) {
+	return func(npc Entity) (complete bool, requeue bool) {
+		hasNext := ProjectileFollowPathNext(npc, eventLog, dungeon)
+
+		return !hasNext, false
+	}
+}
+
+func ProjectileFollowPathNext(npc Entity, eventLog *engine.GameEventLog, dungeon *Dungeon) (hasNext bool) {
+	projectileData := npc.Projectile()
+	positionData := npc.Positioned()
+
+	if projectileData == nil || positionData == nil {
+		return false
+	}
+
+	path := projectileData.Path
+	next, hasNext := path.Next()
+
+	nextTile := dungeon.CurrentLevel().TileAt(next.XY())
+
+	nextTileEntityData := nextTile.Entity()
+
+	dungeon.CurrentLevel().DropEntity(npc.UniqueId())
+
+	positionData.Position = next
+
+	// The next tile is impassable ( wall, void, etc. ) and contains no entity to damage
+	// This is the end of the path
+	if nextTileEntityData == nil && !nextTile.Passable() {
+		return false
+	}
+
+	// Otherwise, if the tile is passible, but also the end of the path, stop here and despawn the projectile
+	if nextTileEntityData == nil && next == projectileData.Path.To() {
+		return false
+	}
+
+	// The next tile contains an entity, do damage to it if we have damage data
+	if nextTileEntityData != nil {
+
+		// The arrow strikes against its master, but to no avail, for I decree it to be illegal
+		if nextTileEntityData.Entity == projectileData.Source {
+			return
+		}
+
+		// Futher I decree, that should the arrow striketh at thyself, it shall be blocked from doing so
+		if nextTileEntityData.Entity == npc {
+			return
+		}
+
+		if projectileData.Source == nil {
+			return false
+		}
+
+		ExecuteAttack(eventLog, projectileData.Source, nextTileEntityData.Entity)
+
+		return false
+	}
+
+	dungeon.CurrentLevel().AddEntity(npc)
+
+	return
+}
 
 func HostileNPCBehavior(eventLog *engine.GameEventLog, dungeon *Dungeon, player *Player) func(npc Entity) (complete bool, requeue bool) {
 	return func(npc Entity) (complete bool, requeue bool) {
@@ -121,6 +196,10 @@ func WithinHitRange(pos engine.Position, otherPos engine.Position) bool {
 func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim Entity) {
 	hit, precision, evasion, dmg, dmgType := CalculateAttack(attacker, victim)
 
+	if attacker.Projectile() != nil {
+		attacker = attacker.Projectile().Source
+	}
+
 	attackerName := "Unknown"
 
 	if attacker.Named() != nil {
@@ -135,6 +214,10 @@ func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim Entity) {
 
 	if !hit {
 		eventLog.Log(fmt.Sprintf("%s attacked %s, but missed ( %v Evasion vs %v Precision)", attackerName, victimName, evasion, precision))
+		return
+	}
+
+	if victim.HealthData() == nil {
 		return
 	}
 

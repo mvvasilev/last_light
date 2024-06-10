@@ -35,7 +35,7 @@ func FindPath(from Position, to Position, maxDistance int, isPassable func(x, y 
 		iteration++
 
 		if iteration >= maxDistance {
-			return nil
+			break
 		}
 
 		if len(openList) == 0 {

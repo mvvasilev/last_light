@@ -90,7 +90,7 @@ func (d *Dungeon) HasNextLevel() bool {
 
 type DungeonLevel struct {
 	ground             Map
-	entitiesByPosition map[engine.Position][]Entity
+	entitiesByPosition map[engine.Position]Entity
 	entities           map[uuid.UUID]Entity
 }
 
@@ -142,7 +142,7 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) (dLevel *Dun
 	dLevel = &DungeonLevel{
 		ground:             groundLevel,
 		entities:           map[uuid.UUID]Entity{},
-		entitiesByPosition: map[engine.Position][]Entity{},
+		entitiesByPosition: map[engine.Position]Entity{},
 	}
 
 	if groundLevel.Rooms() == nil {
@@ -238,11 +238,7 @@ func (d *DungeonLevel) AddEntity(entity Entity) {
 	d.entities[entity.UniqueId()] = entity
 
 	if entity.Positioned() != nil {
-		if d.entitiesByPosition[entity.Positioned().Position] == nil {
-			d.entitiesByPosition[entity.Positioned().Position] = []Entity{entity}
-		} else {
-			d.entitiesByPosition[entity.Positioned().Position] = append(d.entitiesByPosition[entity.Positioned().Position], entity)
-		}
+		d.entitiesByPosition[entity.Positioned().Position] = entity
 	}
 }
 
@@ -258,9 +254,7 @@ func (d *DungeonLevel) MoveEntityTo(uuid uuid.UUID, x, y int) {
 	ent.Positioned().Position = engine.PositionAt(x, y)
 
 	if d.entitiesByPosition[ent.Positioned().Position] == nil {
-		d.entitiesByPosition[ent.Positioned().Position] = []Entity{ent}
-	} else {
-		d.entitiesByPosition[ent.Positioned().Position] = append(d.entitiesByPosition[ent.Positioned().Position], ent)
+		d.entitiesByPosition[ent.Positioned().Position] = ent
 	}
 }
 
@@ -303,7 +297,7 @@ func (d *DungeonLevel) TileAt(x, y int) Tile {
 	tile := Map_TileAt(d.ground, x, y)
 
 	if entity != nil {
-		return CreateTileFromPrototype(tile, Tile_WithEntities(entity))
+		return CreateTileFromPrototype(tile, Tile_WithEntity(entity))
 	}
 
 	return tile
@@ -316,14 +310,14 @@ func (d *DungeonLevel) IsTilePassable(x, y int) bool {
 
 	tile := d.TileAt(x, y)
 
-	if tile.Entities() != nil {
+	if tile.Entity() != nil {
 		return false
 	}
 
 	return tile.Passable()
 }
 
-func (d *DungeonLevel) EntitiesAt(x, y int) (e []Entity) {
+func (d *DungeonLevel) EntityAt(x, y int) (e Entity) {
 	return d.entitiesByPosition[engine.PositionAt(x, y)]
 }
 

@@ -173,3 +173,14 @@ func AbsInt(val int) int {
 	}
 	return val
 }
+
+func Lerp(start, end float64, t float64) float64 {
+	return start*(1.0-t) + end*t
+}
+
+func LerpPositions(p0, p1 Position, t float64) Position {
+	return PositionAt(
+		int(math.Round(Lerp(float64(p0.x), float64(p1.x), t))),
+		int(math.Round(Lerp(float64(p0.y), float64(p1.y), t))),
+	)
+}

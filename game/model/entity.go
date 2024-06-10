@@ -87,6 +87,11 @@ type Entity_DropTableComponent struct {
 	DropTable *LootTable
 }
 
+type Entity_ProjectileComponent struct {
+	Source Entity
+	Path   *engine.Path
+}
+
 type Entity interface {
 	UniqueId() uuid.UUID
 
@@ -99,6 +104,7 @@ type Entity interface {
 	Stats() *Entity_StatsHolderComponent
 	HealthData() *Entity_HealthComponent
 	DropTable() *Entity_DropTableComponent
+	Projectile() *Entity_ProjectileComponent
 }
 
 type BaseEntity struct {
@@ -113,6 +119,7 @@ type BaseEntity struct {
 	stats       *Entity_StatsHolderComponent
 	damageable  *Entity_HealthComponent
 	dropTable   *Entity_DropTableComponent
+	projectile  *Entity_ProjectileComponent
 }
 
 func (be *BaseEntity) UniqueId() uuid.UUID {
@@ -153,6 +160,10 @@ func (be *BaseEntity) Behavior() *Entity_BehaviorComponent {
 
 func (be *BaseEntity) DropTable() *Entity_DropTableComponent {
 	return be.dropTable
+}
+
+func (be *BaseEntity) Projectile() *Entity_ProjectileComponent {
+	return be.projectile
 }
 
 func CreateEntity(components ...func(*BaseEntity)) *BaseEntity {
@@ -247,6 +258,15 @@ func WithDropTable(table map[int]ItemSupplier) func(e *BaseEntity) {
 	return func(e *BaseEntity) {
 		e.dropTable = &Entity_DropTableComponent{
 			DropTable: dropTable,
+		}
+	}
+}
+
+func WithProjectileData(source Entity, path *engine.Path) func(e *BaseEntity) {
+	return func(e *BaseEntity) {
+		e.projectile = &Entity_ProjectileComponent{
+			Source: source,
+			Path:   path,
 		}
 	}
 }

@@ -93,6 +93,7 @@ func CreateInputSystemWithDefaultBindings() *InputSystem {
 			InputKeyOf(InputContext_Look, 0, tcell.KeyRight, 0):       InputAction_Move_East,
 			InputKeyOf(InputContext_Look, 0, tcell.KeyRune, 'd'):      InputAction_Describe,
 			InputKeyOf(InputContext_Look, 0, tcell.KeyRune, 'a'):      InputAction_Shoot,
+			InputKeyOf(InputContext_Look, 0, tcell.KeyRune, 'l'):      InputAction_OpenLogs,
 			InputKeyOf(InputContext_Look, 0, tcell.KeyESC, 0):         InputAction_Menu_Exit,
 		},
 	}

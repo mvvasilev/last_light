@@ -12,10 +12,13 @@ const (
 	ImpClaws specialItemType = 100_000 + iota
 )
 
-func Entity_ArrowProjectile(startX, startY int, targetX, targetY int) Entity {
+func Entity_ArrowProjectile(source Entity, path *engine.Path, eventLog *engine.GameEventLog, dungeon *Dungeon) Entity {
 	return CreateEntity(
 		WithName("Arrow"),
-		WithPosition(engine.PositionAt(startX, startY)),
+		WithPosition(path.From()),
+		WithPresentation('?', tcell.StyleDefault),
+		WithProjectileData(source, path),
+		WithBehavior(1, ProjectileBehavior(eventLog, dungeon)),
 	)
 }
 
