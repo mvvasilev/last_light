@@ -62,6 +62,32 @@ func (p Position) WithOffset(xOffset int, yOffset int) Position {
 	return p
 }
 
+func (p Position) Diff(other Position) Position {
+	p.x = p.x - other.x
+	p.y = p.y - other.y
+
+	return p
+}
+
+func (p Position) Sign() Position {
+	p.x = IntSign(p.x)
+	p.y = IntSign(p.y)
+
+	return p
+}
+
+func IntSign(i int) int {
+	if i < 0 {
+		return -1
+	}
+
+	if i > 0 {
+		return 1
+	}
+
+	return 0
+}
+
 type Sized struct {
 	size Size
 }

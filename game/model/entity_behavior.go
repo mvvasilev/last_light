@@ -5,7 +5,7 @@ import (
 	"mvvasilev/last_light/engine"
 )
 
-type ProjectileSprite rune
+type ArrowSprite rune
 
 //
 // \  |  /
@@ -15,10 +15,10 @@ type ProjectileSprite rune
 // /  |  \
 
 const (
-	ProjectileSprite_NorthSouth         ProjectileSprite = '|'
-	ProjectileSprite_EastWest                            = '─'
-	ProjectileSprite_NorthEastSouthWest                  = '/'
-	ProjectileSprite_NorthWestSouthEast                  = '\\'
+	ProjectileSprite_NorthSouth         ArrowSprite = '|'
+	ProjectileSprite_EastWest           ArrowSprite = '─'
+	ProjectileSprite_NorthEastSouthWest ArrowSprite = '/'
+	ProjectileSprite_NorthWestSouthEast ArrowSprite = '\\'
 )
 
 func ProjectileBehavior(eventLog *engine.GameEventLog, dungeon *Dungeon) func(npc Entity) (complete bool, requeue bool) {

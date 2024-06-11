@@ -103,10 +103,11 @@ func (ls *LookState) ShootEquippedWeapon() {
 
 	// TODO: Projectiles
 	dX, dY := ls.lookCursorCoordsToDungeonCoords()
+	cursorPos := engine.PositionAt(dX, dY)
 
-	distance := engine.PositionAt(dX, dY).Distance(ls.player.Position())
+	distance := cursorPos.Distance(ls.player.Position())
 
-	if distance >= 12 {
+	if distance > 12 {
 		ls.eventLog.Log("Can't see in the dark that far")
 
 		return
@@ -122,7 +123,22 @@ func (ls *LookState) ShootEquippedWeapon() {
 		return
 	}
 
-	projectile := model.Entity_ArrowProjectile(ls.player, path, ls.eventLog, ls.dungeon)
+	direction := ls.player.Position().Diff(cursorPos).Sign()
+
+	sprites := map[engine.Position]model.ArrowSprite{
+		engine.PositionAt(-1, -1): model.ProjectileSprite_NorthWestSouthEast,
+		engine.PositionAt(+1, -1): model.ProjectileSprite_NorthWestSouthEast,
+		engine.PositionAt(-1, +1): model.ProjectileSprite_NorthEastSouthWest,
+		engine.PositionAt(+1, +1): model.ProjectileSprite_NorthEastSouthWest,
+		engine.PositionAt(0, +1):  model.ProjectileSprite_NorthSouth,
+		engine.PositionAt(0, -1):  model.ProjectileSprite_NorthSouth,
+		engine.PositionAt(-1, 0):  model.ProjectileSprite_EastWest,
+		engine.PositionAt(+1, 0):  model.ProjectileSprite_EastWest,
+	}
+
+	sprite := sprites[direction]
+
+	projectile := model.Entity_Projectile("Arrow", rune(sprite), tcell.StyleDefault, ls.player, path, ls.eventLog, ls.dungeon)
 
 	ls.turnSystem.Schedule(
 		projectile.Behavior().Speed,
