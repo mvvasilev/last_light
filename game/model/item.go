@@ -16,7 +16,17 @@ const (
 	MetaItemType_Magic_Armour
 	MetaItemType_Armour
 	MetaItemType_Consumable
+	MetaItemType_Projectile
 	MetaItemType_Potion
+)
+
+type ProjectileDirection int
+
+const (
+	ProjectileDirection_NorthSouth ProjectileDirection = iota
+	ProjectileDirection_EastWest
+	ProjectileDirection_NorthEastSouthWest
+	ProjectileDirection_NorthWestSouthEast
 )
 
 type Item interface {
@@ -33,6 +43,12 @@ type Item interface {
 	Damaging() *Item_DamagingComponent
 	StatModifier() *Item_StatModifierComponent
 	MetaTypes() *Item_MetaTypesComponent
+	ProjectileData() *Item_ProjectileComponent
+}
+
+type Item_ProjectileComponent struct {
+	Sprites              map[ProjectileDirection]rune
+	AdditionalDamageRoll func() (dmg int, dmgType DamageType)
 }
 
 type Item_QuantifiableComponent struct {
@@ -78,14 +94,15 @@ type BaseItem struct {
 	style    tcell.Style
 	itemType ItemType
 
-	quantifiable *Item_QuantifiableComponent
-	usable       *Item_UsableComponent
-	equippable   *Item_EquippableComponent
-	named        *Item_NamedComponent
-	described    *Item_DescribedComponent
-	damaging     *Item_DamagingComponent
-	statModifier *Item_StatModifierComponent
-	metaTypes    *Item_MetaTypesComponent
+	quantifiable   *Item_QuantifiableComponent
+	usable         *Item_UsableComponent
+	equippable     *Item_EquippableComponent
+	named          *Item_NamedComponent
+	described      *Item_DescribedComponent
+	damaging       *Item_DamagingComponent
+	statModifier   *Item_StatModifierComponent
+	metaTypes      *Item_MetaTypesComponent
+	projectileData *Item_ProjectileComponent
 }
 
 func (i *BaseItem) TileIcon() rune {
@@ -134,6 +151,10 @@ func (i *BaseItem) StatModifier() *Item_StatModifierComponent {
 
 func (i *BaseItem) MetaTypes() *Item_MetaTypesComponent {
 	return i.metaTypes
+}
+
+func (i *BaseItem) ProjectileData() *Item_ProjectileComponent {
+	return i.projectileData
 }
 
 func createBaseItem(itemType ItemType, tileIcon rune, icon string, style tcell.Style, components ...func(*BaseItem)) *BaseItem {
@@ -216,6 +237,15 @@ func item_WithMetaTypes(metaTypes []ItemMetaType) func(*BaseItem) {
 	return func(bi *BaseItem) {
 		bi.metaTypes = &Item_MetaTypesComponent{
 			Types: metaTypes,
+		}
+	}
+}
+
+func item_WithProjectileData(sprites map[ProjectileDirection]rune, additionalDamageRoll func() (dmg int, dmgType DamageType)) func(*BaseItem) {
+	return func(bi *BaseItem) {
+		bi.projectileData = &Item_ProjectileComponent{
+			Sprites:              sprites,
+			AdditionalDamageRoll: additionalDamageRoll,
 		}
 	}
 }

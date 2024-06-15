@@ -60,6 +60,9 @@ func (iss *InventoryScreenState) OnTick(dt int64) (nextState GameState) {
 
 		if item.Usable() != nil {
 			item.Usable().Use(iss.eventLog, iss.dungeon, iss.player)
+
+			iss.player.Inventory().ReduceQuantityAt(iss.selectedInventorySlot.X(), iss.selectedInventorySlot.Y(), 1)
+			return
 		}
 
 		if item.Equippable() != nil {
@@ -70,7 +73,7 @@ func (iss *InventoryScreenState) OnTick(dt int64) (nextState GameState) {
 			iss.player.Inventory().Equip(item, item.Equippable().Slot)
 		}
 
-		iss.player.Inventory().ReduceQuantityAt(iss.selectedInventorySlot.X(), iss.selectedInventorySlot.Y(), 1)
+		iss.player.Inventory().Drop(iss.selectedInventorySlot.X(), iss.selectedInventorySlot.Y())
 
 	case systems.InputAction_DropItem:
 		iss.player.Inventory().Drop(iss.selectedInventorySlot.XY())

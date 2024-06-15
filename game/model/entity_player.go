@@ -27,6 +27,7 @@ func CreatePlayer(x, y int, playerBaseStats map[Stat]int) *Player {
 	}
 
 	p.Inventory().Push(Item_Bow())
+	p.Inventory().Push(Item_Arrow(8))
 
 	p.HealthData().MaxHealth = BaseMaxHealth(p)
 	p.HealthData().Health = p.HealthData().MaxHealth

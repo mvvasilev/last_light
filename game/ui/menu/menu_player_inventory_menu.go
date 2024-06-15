@@ -148,6 +148,15 @@ func drawEquipmentSlot(screenX, screenY int, item model.Item, highlighted bool, 
 		style = highlightStyle
 	}
 
+	if item.Quantifiable() != nil {
+		ui.CreateSingleLineUILabel(
+			screenX,
+			screenY,
+			fmt.Sprintf("%03d", item.Quantifiable().CurrentQuantity),
+			style,
+		).Draw(v)
+	}
+
 	ui.CreateSingleLineUILabel(
 		screenX,
 		screenY+1,

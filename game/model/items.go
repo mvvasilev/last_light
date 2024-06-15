@@ -15,6 +15,7 @@ const (
 	ItemType_SmallHealthPotion
 	ItemType_HealthPotion
 	ItemType_LargeHealthPotion
+	ItemType_Arrow
 
 	// Weapons
 	ItemType_Bow
@@ -30,6 +31,7 @@ const (
 	ItemType_Quarterstaff
 
 	// Armour
+	ItemType_TopHat
 
 	// Special
 )
@@ -350,6 +352,41 @@ func Item_Spear() Item {
 		}),
 		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Weapon, MetaItemType_Weapon}),
 		item_WithEquippable(EquippedSlotDominantHand),
+	)
+}
+
+func Item_Arrow(amount int) Item {
+	return createBaseItem(
+		ItemType_Arrow,
+		'-',
+		"»->",
+		tcell.StyleDefault.Foreground(tcell.ColorBurlyWood),
+		item_WithQuantity(amount, 32),
+		item_WithName("Arrow", tcell.StyleDefault),
+		item_WithProjectileData(
+			map[ProjectileDirection]rune{
+				ProjectileDirection_NorthSouth:         '|',
+				ProjectileDirection_EastWest:           '─',
+				ProjectileDirection_NorthEastSouthWest: '/',
+				ProjectileDirection_NorthWestSouthEast: '\\',
+			},
+			nil,
+		),
+		item_WithMetaTypes([]ItemMetaType{MetaItemType_Consumable, MetaItemType_Projectile}),
+		item_WithEquippable(EquippedSlotOffhand),
+	)
+}
+
+func Item_TopHat() Item {
+	return createBaseItem(
+		ItemType_TopHat,
+		'■',
+		"_█_",
+		tcell.StyleDefault.Foreground(tcell.ColorLightYellow),
+		item_WithName("Top Hat", tcell.StyleDefault),
+		item_WithDescription("Smells fishy...", tcell.StyleDefault),
+		item_WithMetaTypes([]ItemMetaType{MetaItemType_Physical_Armour, MetaItemType_Armour}),
+		item_WithEquippable(EquippedSlotHead),
 	)
 }
 

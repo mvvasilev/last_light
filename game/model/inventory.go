@@ -144,3 +144,13 @@ func (i *BasicInventory) ItemAt(x, y int) (item Item) {
 
 	return i.contents[index]
 }
+
+func (i *BasicInventory) Find(filter func(i Item) bool) Item {
+	for _, c := range i.contents {
+		if filter(c) {
+			return c
+		}
+	}
+
+	return nil
+}

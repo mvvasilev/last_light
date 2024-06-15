@@ -102,6 +102,10 @@ func CreateDungeonLevel(width, height int, dungeonType DungeonType) (dLevel *Dun
 		return Item_HealthPotion()
 	})
 
+	genTable.Add(3, func() Item {
+		return Item_Arrow(engine.RandInt(1, 5))
+	})
+
 	itemPool := []Item{
 		Item_Bow(),
 		Item_Longsword(),

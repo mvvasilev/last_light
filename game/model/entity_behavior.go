@@ -3,22 +3,9 @@ package model
 import (
 	"fmt"
 	"mvvasilev/last_light/engine"
-)
+	"mvvasilev/last_light/game/systems"
 
-type ArrowSprite rune
-
-//
-// \  |  /
-//
-// ─  +  ─
-//
-// /  |  \
-
-const (
-	ProjectileSprite_NorthSouth         ArrowSprite = '|'
-	ProjectileSprite_EastWest           ArrowSprite = '─'
-	ProjectileSprite_NorthEastSouthWest ArrowSprite = '/'
-	ProjectileSprite_NorthWestSouthEast ArrowSprite = '\\'
+	"github.com/gdamore/tcell/v2"
 )
 
 func ProjectileBehavior(eventLog *engine.GameEventLog, dungeon *Dungeon) func(npc Entity) (complete bool, requeue bool) {
@@ -76,7 +63,8 @@ func ProjectileFollowPathNext(npc Entity, eventLog *engine.GameEventLog, dungeon
 			return false
 		}
 
-		ExecuteAttack(eventLog, projectileData.Source, nextTileEntityData.Entity)
+		// TODO: calculate additional projectile damage
+		ExecuteAttack(eventLog, projectileData.Source, nextTileEntityData.Entity, true)
 
 		return false
 	}
@@ -86,12 +74,22 @@ func ProjectileFollowPathNext(npc Entity, eventLog *engine.GameEventLog, dungeon
 	return
 }
 
-func HostileNPCBehavior(eventLog *engine.GameEventLog, dungeon *Dungeon, player *Player) func(npc Entity) (complete bool, requeue bool) {
+func HostileMeleeNPCBehavior(eventLog *engine.GameEventLog, dungeon *Dungeon, player *Player) func(npc Entity) (complete bool, requeue bool) {
 	return func(npc Entity) (complete bool, requeue bool) {
 		CalcPathToPlayerAndMove(25, eventLog, dungeon, npc, player)
 
 		return true, true
 	}
+}
+
+func HostileRangedNPCBehavior(eventLog *engine.GameEventLog, dungeon *Dungeon, player *Player) func(npc Entity) (complete bool, requeue bool) {
+	return func(npc Entity) (complete bool, requeue bool) {
+		return true, true
+	}
+}
+
+func CalcPathToPlayerAndKeepDistance(simulationDistance int, eventLog *engine.GameEventLog, dungeon *Dungeon, npc Entity, player *Player) {
+
 }
 
 func CalcPathToPlayerAndMove(simulationDistance int, eventLog *engine.GameEventLog, dungeon *Dungeon, npc Entity, player *Player) {
@@ -141,7 +139,7 @@ func CalcPathToPlayerAndMove(simulationDistance int, eventLog *engine.GameEventL
 	}
 
 	if WithinHitRange(npc.Positioned().Position, player.Position()) {
-		ExecuteAttack(eventLog, npc, player)
+		ExecuteAttack(eventLog, npc, player, false)
 	}
 
 	pathToPlayer := engine.FindPath(
@@ -193,8 +191,8 @@ func WithinHitRange(pos engine.Position, otherPos engine.Position) bool {
 	return pos.WithOffset(-1, 0) == otherPos || pos.WithOffset(+1, 0) == otherPos || pos.WithOffset(0, -1) == otherPos || pos.WithOffset(0, +1) == otherPos
 }
 
-func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim Entity) {
-	hit, precision, evasion, dmg, dmgType := CalculateAttack(attacker, victim)
+func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim Entity, isRanged bool) {
+	hit, precision, evasion, dmg, dmgType := CalculateAttack(attacker, victim, isRanged)
 
 	if attacker.Projectile() != nil {
 		attacker = attacker.Projectile().Source
@@ -232,12 +230,140 @@ func ExecuteAttack(eventLog *engine.GameEventLog, attacker, victim Entity) {
 	eventLog.Log(fmt.Sprintf("%s attacked %s, and hit for %v %v damage", attackerName, victimName, dmg, DamageTypeName(dmgType)))
 }
 
-func CalculateAttack(attacker, victim Entity) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
+func CalculateAttack(attacker, victim Entity, isRanged bool) (hit bool, precisionRoll, evasionRoll int, damage int, damageType DamageType) {
 	if attacker.Equipped() != nil && attacker.Equipped().Inventory.AtSlot(EquippedSlotDominantHand) != nil {
 		weapon := attacker.Equipped().Inventory.AtSlot(EquippedSlotDominantHand)
+
+		if weapon.Damaging() != nil {
+			// If the weapon is ranged, but the combat isn't, do unarmed
+			if isRanged && !weapon.Damaging().IsRanged {
+				return UnarmedAttack(attacker, victim)
+			}
+
+			// Doing melee damage from ranged? Don't think so.
+			if !isRanged && weapon.Damaging().IsRanged {
+				return false, 0, 0, 0, DamageType_Physical_Unarmed
+			}
+		}
 
 		return PhysicalWeaponAttack(attacker, weapon, victim)
 	} else {
 		return UnarmedAttack(attacker, victim)
 	}
+}
+
+func ShootProjectile(shooter Entity, target engine.Position, eventLog *engine.GameEventLog, dungeon *Dungeon, turnSystem *systems.TurnSystem) (success bool) {
+	success = false
+
+	logMessage := func(msg string) {
+		if eventLog != nil {
+			eventLog.Log(msg)
+		}
+	}
+
+	if shooter.Equipped() == nil || shooter.Positioned() == nil {
+		return
+	}
+
+	shooterName := "Unknown"
+
+	if shooter.Named() != nil {
+		shooterName = shooter.Named().Name
+	}
+
+	weapon := shooter.Equipped().Inventory.AtSlot(EquippedSlotDominantHand)
+
+	if weapon == nil {
+		logMessage(fmt.Sprintf("%s wants to shoot, but doesn't have anything equipped!", shooterName))
+
+		return
+	}
+
+	if weapon.Damaging() == nil || !weapon.Damaging().IsRanged {
+		itemName := "dominant hand"
+
+		if weapon.Named() != nil {
+			itemName = weapon.Named().Name
+		}
+
+		logMessage(fmt.Sprintf("%s wants to use %s for this, but can't!", shooterName, itemName))
+
+		return
+	}
+
+	projectileItem := shooter.Equipped().Inventory.AtSlot(EquippedSlotOffhand)
+
+	if projectileItem == nil {
+		logMessage(fmt.Sprintf("%s doesn't have any projectiles equipped!", shooterName))
+
+		return
+	}
+
+	if projectileItem.ProjectileData() == nil {
+		projectileItemName := "off hand"
+
+		if projectileItem.Named() != nil {
+			projectileItemName = projectileItem.Named().Name
+		}
+
+		logMessage(fmt.Sprintf("%s can't use %s as ammo", shooterName, projectileItemName))
+
+		return
+	}
+
+	distance := target.Distance(shooter.Positioned().Position)
+
+	if distance > 12 {
+		// logMessage("Can't see in the dark that far")
+
+		return
+	}
+
+	path := engine.LinePath(
+		shooter.Positioned().Position,
+		target,
+	)
+
+	if path == nil {
+		// logMessage("Can't shoot there, something is in the way")
+		return
+	}
+
+	direction := map[engine.Position]ProjectileDirection{
+		engine.PositionAt(-1, -1): ProjectileDirection_NorthWestSouthEast,
+		engine.PositionAt(+1, +1): ProjectileDirection_NorthWestSouthEast,
+		engine.PositionAt(-1, +1): ProjectileDirection_NorthEastSouthWest,
+		engine.PositionAt(+1, -1): ProjectileDirection_NorthEastSouthWest,
+		engine.PositionAt(0, +1):  ProjectileDirection_NorthSouth,
+		engine.PositionAt(0, -1):  ProjectileDirection_NorthSouth,
+		engine.PositionAt(-1, 0):  ProjectileDirection_EastWest,
+		engine.PositionAt(+1, 0):  ProjectileDirection_EastWest,
+	}[shooter.Positioned().Position.Diff(target).Sign()]
+
+	projectile := Entity_Projectile(
+		"Projectile",
+		projectileItem.ProjectileData().Sprites[direction],
+		tcell.StyleDefault,
+		shooter,
+		path,
+		eventLog,
+		dungeon,
+	)
+
+	turnSystem.Schedule(
+		projectile.Behavior().Speed,
+		projectile.Behavior().Behavior,
+	)
+
+	if projectileItem.Quantifiable() == nil {
+		shooter.Equipped().Inventory.Equip(nil, EquippedSlotOffhand)
+	} else {
+		projectileItem.Quantifiable().CurrentQuantity--
+
+		if projectileItem.Quantifiable().CurrentQuantity <= 0 {
+			shooter.Equipped().Inventory.Equip(nil, EquippedSlotOffhand)
+		}
+	}
+
+	return true
 }

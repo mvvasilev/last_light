@@ -101,13 +101,13 @@ func CreatePlayingState(turnSystem *systems.TurnSystem, inputSystem *systems.Inp
 	entityTable := model.CreateEntityTable()
 
 	entityTable.Add(1, func(x, y int) model.Entity {
-		return model.Entity_Imp(x, y, model.HostileNPCBehavior(s.eventLog, s.dungeon, s.player))
+		return model.Entity_Imp(x, y, model.HostileMeleeNPCBehavior(s.eventLog, s.dungeon, s.player))
 	})
 	entityTable.Add(1, func(x, y int) model.Entity {
-		return model.Entity_SkeletalKnight(x, y, model.HostileNPCBehavior(s.eventLog, s.dungeon, s.player))
+		return model.Entity_SkeletalKnight(x, y, model.HostileMeleeNPCBehavior(s.eventLog, s.dungeon, s.player))
 	})
 	entityTable.Add(1, func(x, y int) model.Entity {
-		return model.Entity_SkeletalWarrior(x, y, model.HostileNPCBehavior(s.eventLog, s.dungeon, s.player))
+		return model.Entity_SkeletalWarrior(x, y, model.HostileMeleeNPCBehavior(s.eventLog, s.dungeon, s.player))
 	})
 
 	s.npcs = SpawnNPCs(s.dungeon, 7, entityTable)
@@ -171,7 +171,7 @@ func (ps *PlayingState) MovePlayer(direction model.Direction) (success bool) {
 			return false
 		}
 
-		model.ExecuteAttack(ps.eventLog, ps.player, ent)
+		model.ExecuteAttack(ps.eventLog, ps.player, ent, false)
 
 		return true
 	}
